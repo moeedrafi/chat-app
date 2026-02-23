@@ -11,10 +11,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
-import { AdminGuard } from 'src/guards/admin.guard';
 import { LoginDTO } from 'src/auth/dtos/login.dto';
-import { Public } from 'src/decorators/public.decorator';
 import { RegisterDTO } from 'src/auth/dtos/register.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 import { ResetPasswordDTO } from 'src/auth/dtos/reset-password.dto';
 import { ForgotPasswordDTO } from 'src/auth/dtos/forgot-password.dto';
 
@@ -23,7 +22,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Get('/me')
-  @UseGuards(AdminGuard)
   me(@Req() req) {
     return req.user;
   }
