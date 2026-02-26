@@ -7,6 +7,7 @@ import { AppController } from 'src/app.controller';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { FriendRequestModule } from './friend-request/friend-request.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
     }),
     UserModule,
     AuthModule,
+    FriendRequestModule,
   ],
   controllers: [AppController],
   providers: [
