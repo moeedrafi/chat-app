@@ -1,3 +1,4 @@
+import { Message } from 'src/message/message.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ConversationParticipant } from 'src/conversation-participant/conversation-participant.entity';
 

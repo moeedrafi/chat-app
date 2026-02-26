@@ -10,6 +10,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { FriendRequestModule } from './friend-request/friend-request.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { ConversationParticipantModule } from './conversation-participant/conversation-participant.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ConversationParticipantModule } from './conversation-participant/conver
     FriendRequestModule,
     ConversationModule,
     ConversationParticipantModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [
