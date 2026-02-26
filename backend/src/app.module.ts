@@ -9,6 +9,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { FriendRequestModule } from './friend-request/friend-request.module';
 import { ConversationModule } from './conversation/conversation.module';
+import { ConversationParticipantModule } from './conversation-participant/conversation-participant.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ConversationModule } from './conversation/conversation.module';
     AuthModule,
     FriendRequestModule,
     ConversationModule,
+    ConversationParticipantModule,
   ],
   controllers: [AppController],
   providers: [
