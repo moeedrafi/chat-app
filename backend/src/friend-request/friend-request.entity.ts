@@ -1,3 +1,4 @@
+import { FriendRequestStatus } from 'src/enum';
 import { User } from 'src/user/user.entity';
 import {
   Column,
@@ -24,10 +25,10 @@ export class FriendRequest {
 
   @Column({
     type: 'enum',
-    enum: ['pending', 'accepted', 'rejected'],
-    default: 'pending',
+    enum: FriendRequestStatus,
+    default: FriendRequestStatus.PENDING,
   })
-  status: 'pending' | 'accepted' | 'rejected';
+  status: FriendRequestStatus;
 
   @CreateDateColumn()
   created_at: Date;

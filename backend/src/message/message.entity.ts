@@ -8,6 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { MessageStatus } from 'src/enum';
 
 @Entity()
 export class Message {
@@ -25,8 +26,8 @@ export class Message {
   @Column('text')
   message: string;
 
-  @Column({ type: 'enum', enum: ['sent', 'read'], default: 'sent' })
-  status: 'sent' | 'read';
+  @Column({ type: 'enum', enum: MessageStatus, default: MessageStatus.SENT })
+  status: MessageStatus;
 
   @Column({ type: 'timestamp', nullable: true })
   seen_at: Date;
