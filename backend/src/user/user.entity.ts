@@ -1,4 +1,3 @@
-import { UserRole } from 'src/enum';
 import {
   Entity,
   Column,
@@ -19,7 +18,7 @@ export class User {
   email: string;
 
   @Column()
-  name: string;
+  username: string;
 
   @Column()
   password: string;
@@ -32,9 +31,6 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   resetTokenExpiry?: Date;
-
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-  role: UserRole;
 
   @CreateDateColumn()
   createdAt: Date;

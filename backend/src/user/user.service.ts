@@ -5,15 +5,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserRole } from 'src/enum';
 import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class UserService {
   constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
-  async findOne(email: string) {
-    return this.repo.findOne({ where: { email } });
+  async findOne(username: string, select?: (keyof User)[]) {
+    return this.repo.findOne({
+      where: { username },
+      select,
+    });
   }
 
   async findById(
@@ -27,12 +29,11 @@ export class UserService {
     });
   }
 
-  async create(email: string, password: string, name: string, role: UserRole) {
+  async create(email: string, password: string, username: string) {
     const user = this.repo.create({
       email,
-      role,
       password,
-      name,
+      username,
     });
 
     return this.repo.save(user);

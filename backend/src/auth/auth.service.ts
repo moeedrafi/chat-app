@@ -10,7 +10,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserRole } from 'src/enum';
 import { UserService } from 'src/user/user.service';
 @Injectable()
 export class AuthService {
@@ -32,10 +31,10 @@ export class AuthService {
     return bcrypt.hash(data, saltRounds);
   }
 
-  async getTokens(id: number, role: UserRole) {
+  async getTokens(id: number) {
     const refreshTokenId = randomUUID();
 
-    const accessPayload = { sub: id, role };
+    const accessPayload = { sub: id };
     const refreshPayload = { sub: id, jti: refreshTokenId };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -62,13 +61,10 @@ export class AuthService {
 
     // TODO: Send email verification
 
-    const userRole = isAdmin ? UserRole.ADMIN : UserRole.USER;
-
     const createdUser = await this.userService.create(
       email,
       hashedPassword,
       name,
-      userRole,
     );
 
     return {
@@ -86,7 +82,7 @@ export class AuthService {
     const isCorrect = await this.isPasswordMatch(password, user.password);
     if (!isCorrect) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = await this.getTokens(user.id, user.role);
+    const tokens = await this.getTokens(user.id);
     const hashedRefreshToken = await this.hashing(tokens.refreshToken, 12);
     await this.userService.update(user.id, {
       refreshToken: hashedRefreshToken,
@@ -96,8 +92,7 @@ export class AuthService {
       ...tokens,
       user: {
         email: user.email,
-        role: user.role,
-        name: user.name,
+        username: user.username,
       },
     };
   }
@@ -122,7 +117,7 @@ export class AuthService {
 
       // 4️⃣ generate new tokens
       const { accessToken, refreshToken: newRefreshToken } =
-        await this.getTokens(user.id, user.role);
+        await this.getTokens(user.id);
 
       // 5️⃣ hash new refresh token and save
       const hashed = await this.hashing(newRefreshToken);
