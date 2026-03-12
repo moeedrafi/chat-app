@@ -19,7 +19,9 @@ export class Message {
   @JoinColumn({ name: 'sender_id' })
   sender: User;
 
-  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'conversation_id' })
   conversation: Conversation;
 

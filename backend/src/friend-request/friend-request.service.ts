@@ -60,7 +60,7 @@ export class FriendRequestService {
     }
 
     await this.repo.remove(request);
-    // await this.conversationService.remove(senderId, friendId);
+    await this.conversationService.remove(senderId, friendId);
 
     return { message: 'Removed friend and conversation successfully' };
   }
