@@ -8,14 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FriendRequestStatus } from 'src/enum';
 import { UserService } from 'src/user/user.service';
 import { FriendRequest } from 'src/friend-request/friend-request.entity';
-import { ConversationService } from 'src/conversation/conversation.service';
 
 @Injectable()
 export class FriendRequestService {
   constructor(
     @InjectRepository(FriendRequest) private repo: Repository<FriendRequest>,
     private readonly userService: UserService,
-    private readonly conversationService: ConversationService,
   ) {}
 
   async send(senderId: number, sentTo: string) {
@@ -60,8 +58,55 @@ export class FriendRequestService {
     }
 
     await this.repo.remove(request);
-    await this.conversationService.remove(senderId, friendId);
 
     return { message: 'Removed friend and conversation successfully' };
+  }
+
+  findAll(userId: number) {
+    return this.repo.find({
+      where: [
+        { sender: { id: userId }, status: FriendRequestStatus.ACCEPTED },
+        { receiver: { id: userId }, status: FriendRequestStatus.ACCEPTED },
+      ],
+    });
+
+    //   return this.repo
+    // .createQueryBuilder('fr')
+    // .leftJoinAndSelect('fr.sender', 'sender')
+    // .leftJoinAndSelect('fr.receiver', 'receiver')
+    // .where('(sender.id = :userId OR receiver.id = :userId) AND fr.status = :status', {
+    //   userId,
+    //   status: FriendRequestStatus.ACCEPTED,
+    // })
+    // .getMany();
+
+    //   return this.repo
+    // .createQueryBuilder('fr')
+    // .leftJoin('fr.sender', 'sender')
+    // .leftJoin('fr.receiver', 'receiver')
+    // .select([
+    //   'CASE WHEN sender.id = :userId THEN receiver.id ELSE sender.id END AS friendId',
+    //   'CASE WHEN sender.id = :userId THEN receiver.name ELSE sender.name END AS friendName',
+    // ])
+    // .where('(sender.id = :userId OR receiver.id = :userId) AND fr.status = :status', {
+    //   userId,
+    //   status: FriendRequestStatus.ACCEPTED,
+    // })
+    // .getRawMany();
+  }
+
+  async findFriend(userId: number, friendId: number) {
+    const friendship = await this.repo.findOne({
+      where: [
+        { sender: { id: userId }, receiver: { id: friendId } },
+        { sender: { id: friendId }, receiver: { id: userId } },
+      ],
+    });
+
+    if (!friendship) {
+      throw new ForbiddenException(
+        'Cannot create a conversation: users are not friends',
+      );
+    }
   }
 }

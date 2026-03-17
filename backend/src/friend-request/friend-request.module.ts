@@ -14,5 +14,6 @@ import { FriendRequestController } from 'src/friend-request/friend-request.contr
   ],
   controllers: [FriendRequestController],
   providers: [FriendRequestService],
+  exports: [FriendRequestService],
 })
 export class FriendRequestModule {}

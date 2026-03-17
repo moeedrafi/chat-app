@@ -1,16 +1,17 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { SendRequestDTO } from 'src/friend-request/dtos/send-request.dto';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FriendRequestDTO } from 'src/friend-request/dtos/friend-request.dto';
 import { FriendRequestService } from 'src/friend-request/friend-request.service';
-import {
-  Body,
-  Controller,
-  Delete,
-  Param,
-  ParseIntPipe,
-  Post,
-} from '@nestjs/common';
 
 @Controller('friend-request')
 export class FriendRequestController {
@@ -32,5 +33,10 @@ export class FriendRequestController {
     @Param('friendid', ParseIntPipe) friendId: number,
   ) {
     return this.friendRequestService.remove(user.sub, friendId);
+  }
+
+  @Get()
+  getFriends(@CurrentUser() user: { sub: number }) {
+    return this.friendRequestService.findAll(user.sub);
   }
 }
