@@ -56,25 +56,30 @@ export class ConversationService {
     };
   }
 
+  async findById(conversationId: string, currentUserId: number) {
+    const conversation = await this.repo.findOne({
+      where: { id: conversationId },
+      relations: ['participants', 'participants.user'],
+    });
+    if (!conversation) {
+      throw new NotFoundException('conversation not found');
+    }
+
+    const isParticipant = conversation.participants.some(
+      (p) => p.user.id === currentUserId,
+    );
+    if (!isParticipant) {
+      throw new NotFoundException(
+        'You are not a participant in this conversation',
+      );
+    }
+
+    return conversation;
+  }
+
   async hardRemove(userId: number, conversationId: string) {
     return await this.dataSource.transaction(async (manager) => {
-      const conversation = await this.repo.findOne({
-        where: { id: conversationId },
-        relations: ['participants', 'participants.user'],
-      });
-
-      if (!conversation) {
-        throw new NotFoundException('conversation not found');
-      }
-
-      const isParticipant = conversation.participants.some(
-        (p) => p.user.id === userId,
-      );
-      if (!isParticipant) {
-        throw new NotFoundException(
-          'You are not a participant in this conversation',
-        );
-      }
+      const conversation = await this.findById(conversationId, userId);
 
       await manager.remove(Conversation, conversation);
       return { message: 'Convesation Deleted for all participants' };

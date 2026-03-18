@@ -98,8 +98,16 @@ export class FriendRequestService {
   async findFriend(userId: number, friendId: number) {
     const friendship = await this.repo.findOne({
       where: [
-        { sender: { id: userId }, receiver: { id: friendId } },
-        { sender: { id: friendId }, receiver: { id: userId } },
+        {
+          sender: { id: userId },
+          receiver: { id: friendId },
+          status: FriendRequestStatus.ACCEPTED,
+        },
+        {
+          sender: { id: friendId },
+          receiver: { id: userId },
+          status: FriendRequestStatus.ACCEPTED,
+        },
       ],
     });
 

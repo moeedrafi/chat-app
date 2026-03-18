@@ -1,4 +1,101 @@
-import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { MessageStatus } from 'src/enum';
+import { Message } from 'src/message/message.entity';
+import { ConversationService } from 'src/conversation/conversation.service';
+import { FriendRequestService } from 'src/friend-request/friend-request.service';
 
 @Injectable()
-export class MessageService {}
+export class MessageService {
+  constructor(
+    @InjectRepository(Message) private repo: Repository<Message>,
+    private readonly conversationService: ConversationService,
+    private readonly friendRequestService: FriendRequestService,
+  ) {}
+
+  async create(
+    senderId: number,
+    conversationId: string,
+    body: { message: string },
+  ) {
+    const conversation = await this.conversationService.findById(
+      conversationId,
+      senderId,
+    );
+
+    const users = conversation.participants.map((u) => u.user.id);
+    await this.friendRequestService.findFriend(users[0], users[1]);
+
+    const message = this.repo.create({
+      ...body,
+      conversation: { id: conversationId },
+      sender: { id: senderId },
+    });
+
+    return {
+      data: this.repo.save(message),
+      message: 'send message successfully',
+    };
+  }
+
+  async remove(senderId: number, conversationId: string, messageId: string) {
+    const conversation = await this.conversationService.findById(
+      conversationId,
+      senderId,
+    );
+
+    const users = conversation.participants.map((u) => u.user.id);
+    await this.friendRequestService.findFriend(users[0], users[1]);
+
+    const message = await this.repo.findOne({
+      where: {
+        id: messageId,
+        conversation: { id: conversationId },
+        sender: { id: senderId },
+      },
+    });
+    if (!message) {
+      throw new NotFoundException('message not found');
+    }
+
+    return {
+      data: this.repo.remove(message),
+      message: 'send message successfully',
+    };
+  }
+
+  async seen(userId: number, conversationId: string) {
+    const conversation = await this.conversationService.findById(
+      conversationId,
+      userId,
+    );
+
+    const users = conversation.participants.map((u) => u.user.id);
+    await this.friendRequestService.findFriend(users[0], users[1]);
+
+    // const unseenMessage = await this.repo.find({
+    //   where: {
+    //     conversation: { id: conversationId },
+    //     sender: Not(userId),
+    //     seen_at: IsNull(),
+    //   },
+    // });
+
+    // await this.repo.update(
+    //   { id: In(unseenMessage.map((m) => m.id)) },
+    //   { seen_at: new Date(), status: MessageStatus.READ },
+    // );
+
+    await this.repo
+      .createQueryBuilder()
+      .update(Message)
+      .set({ seen_at: () => 'CURRENT_TIMESTAMP', status: MessageStatus.READ })
+      .where('conversation_id = :conversationId', { conversationId })
+      .andWhere('sender_id != :userId', { userId })
+      .andWhere('seen_at IS NULL')
+      .execute();
+
+    return { message: 'Messages marked as seen' };
+  }
+}
