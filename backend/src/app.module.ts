@@ -11,6 +11,7 @@ import { FriendRequestModule } from './friend-request/friend-request.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { ConversationParticipantModule } from './conversation-participant/conversation-participant.module';
 import { MessageModule } from './message/message.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -19,10 +20,23 @@ import { MessageModule } from './message/message.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db.sqlite',
+      type: 'postgres',
       autoLoadEntities: true,
       synchronize: true,
+      url: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      extra: { max: 5 },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        port: 587,
+        secure: false,
+        host: process.env.HOST,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      },
     }),
     UserModule,
     AuthModule,

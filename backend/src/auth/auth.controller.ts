@@ -21,9 +21,9 @@ import { ForgotPasswordDTO } from 'src/auth/dtos/forgot-password.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Get('/me')
-  me(@Req() req) {
-    return req.user;
+  @Get('/verify')
+  verify(@Req() req) {
+    return { user: 'email@gmail.com' };
   }
 
   @Public()

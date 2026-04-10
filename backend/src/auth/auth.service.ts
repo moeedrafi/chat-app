@@ -32,10 +32,8 @@ export class AuthService {
   }
 
   async getTokens(id: number) {
-    const refreshTokenId = randomUUID();
-
     const accessPayload = { sub: id };
-    const refreshPayload = { sub: id, jti: refreshTokenId };
+    const refreshPayload = { sub: id };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(accessPayload),
