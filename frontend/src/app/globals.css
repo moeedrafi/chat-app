@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --bg-dark: hsl(235 5% 90%);
+  --bg: hsl(235 5% 95%);
+  --bg-light: hsl(235 5% 100%);
+
+  --border-color: hsl(235 5% 60%);
+  --gradient: linear-gradient(360deg, bg 5%, bg-light);
+  --gradient-hover: linear-gradient(0deg, bg, bg-light);
+  --color-highlight: hsl(235 5% 100%);
+
+  --text: hsl(0 0 5%);
+  --text-muted-foreground: hsl(0 0 30%);
+
+  --color-primary: hsl(235, 100%, 50%);
+  --color-secondary: hsl(235, 100%, 40%);
+}
+
+.dark {
+  --bg-dark: hsl(235 5% 0%);
+  --bg: hsl(235 5% 5%);
+  --bg-light: hsl(235 5% 10%);
+
+  --border-color: hsl(235 5% 40%);
+  --gradient: linear-gradient(0deg, bg 95%, bg-light);
+  --gradient-hover: linear-gradient(0deg, bg, bg-light);
+  --color-highlight: hsl(235 5% 60%);
+
+  --text: hsl(0 0 95%);
+  --text-muted-foreground: hsl(0 0 70%);
+
+  --color-primary: hsl(235, 100%, 50%);
+  --color-secondary: hsl(235, 100%, 60%);
+}
+
+@theme inline {
+  --color-dark: var(--bg-dark);
+  --color-bg: var(--bg);
+  --color-light: var(--bg-light);
+
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+
+  --color-text: var(--text);
+  --color-muted-foreground: var(--text-muted-foreground);
+
+  --color-color: var(--border-color);
+  --color-gradient: var(--gradient);
+  --color-gradient-hover: var(--gradient-hover);
+
+  --shadow-inset:
+    inset 0px 4px 10px 2px hsla(0 0% 0% / 0.4),
+    inset 0 -4px 6px -4px hsl(0 0% 100%);
+  --shadow-inset-lg:
+    inset 0 6px 6px -4px hsla(0 0% 0% / 0.4),
+    inset 6px 0 6px -4px hsla(0 0% 0% / 0.4),
+    inset -6px 0 6px -4px hsla(0 0% 0% / 0.4),
+    inset 0 -6px 6px -4px hsla(0 0% 100% / 1);
+  --shadow: 0px 2px 2px hsla(0 0% 0% / 0.19), 0px 4px 4px hsla(0 0% 0% / 0.08);
+  --shadow-lg:
+    0px 4px 4px hsla(0 0% 0% / 0.19), 0px 8px 8px hsla(0 0% 0% / 0.08);
+
+  --font-lato: var(--font-lato);
+
+  /* --text-h1: bold 4rem/1em var(--font-lato); */
+  /* --text-h2: bold 3rem/1.2em var(--font-lato);
+  --text-h3: bold 2.25rem/1.2em var(--font-lato);
+  --text-h4: bold 1.5rem/1.6em var(--font-lato);
+  --text-big: 1.25rem/1.6em var(--font-lato);
+  --text-p: 1rem/1.6em var(--font-lato);
+  --text-small: 0.75rem/2em var(--font-lato); */
+
+  /* UIs */
+  /* --h1ui: bold 3rem/1.2em var(--ff);
+  --h2ui: bold 2.25rem/1.2em var(--ff);
+  --h3ui: bold 1.5rem/1.2em var(--ff);
+  --h4ui: bold 1.12rem/1.6em var(--ff);
+  --bigui: 1rem/1.6em var(--ff);
+  --pui: 0.8rem/1.6em var(--ff);
+  --smallui: 0.75rem/1.8em var(--ff); */
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  background: var(--bg-dark);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
