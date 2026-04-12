@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useAppForm } from "@/hooks/form";
+import { useRouter } from "next/navigation";
 import { registerFormOptions } from "@/lib/shared-form";
 
 export const RegisterForm = () => {
-  const form = useAppForm({ ...registerFormOptions });
+  const router = useRouter();
+  const form = useAppForm(registerFormOptions(router));
 
   return (
     <>
@@ -16,9 +18,9 @@ export const RegisterForm = () => {
           form.handleSubmit();
         }}
       >
-        <form.AppField name="name">
+        <form.AppField name="username">
           {(field) => (
-            <field.TextField required label="Name" placeholder="John Doe" />
+            <field.TextField required label="Username" placeholder="John Doe" />
           )}
         </form.AppField>
 
@@ -44,26 +46,13 @@ export const RegisterForm = () => {
           )}
         </form.AppField>
 
-        <div className="space-y-3">
-          <form.AppForm>
-            <form.SubscribeButton
-              type="submit"
-              label="Register as Student"
-              className="w-full"
-              onClick={() => form.setFieldValue("isAdmin", false)}
-            />
-          </form.AppForm>
-
-          <form.AppForm>
-            <form.SubscribeButton
-              type="submit"
-              label="Register as Teacher"
-              className="w-full"
-              variant="ghost"
-              onClick={() => form.setFieldValue("isAdmin", true)}
-            />
-          </form.AppForm>
-        </div>
+        <form.AppForm>
+          <form.SubscribeButton
+            type="submit"
+            label="Register"
+            className="w-full"
+          />
+        </form.AppForm>
       </form>
 
       <Link

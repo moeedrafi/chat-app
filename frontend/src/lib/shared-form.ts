@@ -13,7 +13,7 @@ import { ApiError } from "./error";
 /* REGISTER */
 const registerInitialState: RegisterFormData = {
   email: "",
-  name: "",
+  username: "",
   password: "",
 };
 
@@ -33,6 +33,8 @@ export const registerFormOptions = (router: ReturnType<typeof useRouter>) =>
           "/auth/signup",
           validatedData.data,
         );
+
+        console.log(res);
 
         toast.success(res.message);
         router.push("/");

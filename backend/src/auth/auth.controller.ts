@@ -16,25 +16,22 @@ import { RegisterDTO } from 'src/auth/dtos/register.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ResetPasswordDTO } from 'src/auth/dtos/reset-password.dto';
 import { ForgotPasswordDTO } from 'src/auth/dtos/forgot-password.dto';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Get('/verify')
-  verify(@Req() req) {
-    return { user: 'email@gmail.com' };
+  verify(@CurrentUser() user) {
+    console.log('VERIFY USER: ', user);
+    return user;
   }
 
   @Public()
   @Post('/signup')
   signUp(@Body() body: RegisterDTO) {
-    return this.authService.signUp(
-      body.email,
-      body.password,
-      body.name,
-      body.isAdmin,
-    );
+    return this.authService.signUp(body.email, body.password, body.username);
   }
 
   @Public()
@@ -60,7 +57,6 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/auth/refresh',
     });
 
     return {

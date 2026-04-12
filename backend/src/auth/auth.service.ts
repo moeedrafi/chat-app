@@ -46,12 +46,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async signUp(
-    email: string,
-    password: string,
-    name: string,
-    isAdmin: boolean,
-  ) {
+  async signUp(email: string, password: string, username: string) {
     const user = await this.userService.findOne(email);
     if (user) throw new ConflictException('User already exists');
 
@@ -62,7 +57,7 @@ export class AuthService {
     const createdUser = await this.userService.create(
       email,
       hashedPassword,
-      name,
+      username,
     );
 
     return {

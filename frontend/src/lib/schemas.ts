@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /* REGISTER */
 export const registerSchema = z.object({
-  name: z.string().min(3, "Name is required"),
+  username: z.string().min(3, "username is required"),
   email: z.email("Invalid email address"),
   password: z.string().min(6, "Password should be 6 characters"),
 });

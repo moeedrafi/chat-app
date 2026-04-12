@@ -11,7 +11,14 @@ import { User } from 'src/user/user.entity';
 export class UserService {
   constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
-  async findOne(username: string, select?: (keyof User)[]) {
+  async findOne(email: string, select?: (keyof User)[]) {
+    return this.repo.findOne({
+      where: { email },
+      select,
+    });
+  }
+
+  async findByUsername(username: string, select?: (keyof User)[]) {
     return this.repo.findOne({
       where: { username },
       select,
@@ -68,5 +75,9 @@ export class UserService {
 
   async save(user: User) {
     return this.repo.save(user);
+  }
+
+  async updateRefreshToken(id: number, hashedToken: string) {
+    await this.repo.update(id, { refreshToken: hashedToken });
   }
 }

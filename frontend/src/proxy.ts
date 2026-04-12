@@ -7,18 +7,22 @@ export async function proxy(request: NextRequest) {
       headers: { cookie: request.headers.get("cookie") || "" },
     },
   );
+
   if (response.status === 401) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+
   // forward any new cookies NestJS set (rotated tokens)
   const res = NextResponse.next();
-  const setCookie = response.headers.get("set-cookie");
-  if (setCookie) {
-    res.headers.set("set-cookie", setCookie);
-  }
+  const cookies = response.headers.getSetCookie();
+
+  cookies.forEach((cookie) => {
+    res.headers.append("set-cookie", cookie);
+  });
+
   return res;
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/((?!login|register|_next/static|_next/image|favicon.ico).*)"],
 };
