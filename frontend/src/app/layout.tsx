@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import { Navbar } from "@/components/Navbar";
-import { Sidebar } from "@/components/Sidebar";
 import Providers from "./providers";
-import { AppLayout } from "./AppLayout";
 
 const lato = Lato({
   variable: "--font-lato",
@@ -27,14 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lato.variable} antialiased`}>
-        <div className="h-svh flex flex-col lg:flex-row overflow-hidden">
-          <Navbar />
-          <Providers>
-            <Sidebar />
-            <AppLayout>{children}</AppLayout>
-          </Providers>
-        </div>
-
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>

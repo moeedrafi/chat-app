@@ -4,13 +4,13 @@ import { usePathname } from "next/navigation";
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
-  const isConversationOpen = pathname.startsWith("/conversation/");
+  const isChatsPage = pathname === "/";
 
   return (
     <main
       className={twMerge(
         "flex-1 min-w-0 lg:order-3",
-        !isConversationOpen && "hidden lg:block",
+        isChatsPage && "hidden lg:block",
       )}
     >
       {children}

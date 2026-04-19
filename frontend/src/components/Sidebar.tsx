@@ -86,13 +86,13 @@ export const Sidebar = () => {
   >(null);
 
   const pathname = usePathname();
-  const isConversationOpen = pathname.startsWith("/conversation/");
+  const showSidebar = pathname === "/";
 
   return (
     <aside
       className={twMerge(
         "order-1 lg:order-3 min-h-0 flex-1 lg:w-80 lg:flex-none lg:border-r lg:border-color px-3 py-4 flex flex-col gap-4 font-lato",
-        isConversationOpen && "hidden lg:flex",
+        !showSidebar && "hidden lg:flex", // hide on mobile for non-chat pages
       )}
     >
       <div>LOGO</div>

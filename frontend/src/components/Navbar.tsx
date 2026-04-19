@@ -34,7 +34,10 @@ export const Navbar = () => {
       )}
     >
       {routes.map(({ Icon, href, label }) => {
-        const isActive = pathname === href || pathname.startsWith(`${href}/`);
+        const isActive =
+          href === "/"
+            ? pathname === "/" || pathname.startsWith("/conversation/")
+            : pathname === href || pathname.startsWith(`${href}/`);
 
         return (
           <Link
