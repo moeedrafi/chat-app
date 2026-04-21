@@ -1,7 +1,13 @@
+import { Messages } from "./Messages";
+import { ConversationInput } from "./ConversationInput";
+import { ConversationHeader } from "./ConversationHeader";
+
 export default function ConversationIdPage() {
   return (
-    <div className="flex-1 h-full flex items-center justify-center font-lato text-2xl text-text">
-      ConversationID Page
+    <div className="h-full flex flex-col font-lato text-text space-y-3">
+      <ConversationHeader />
+      <Messages />
+      <ConversationInput />
     </div>
   );
 }
