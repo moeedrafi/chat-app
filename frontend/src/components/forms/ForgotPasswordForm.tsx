@@ -21,7 +21,7 @@ export const ForgotPasswordForm = () => {
       }
 
       try {
-        const res = await api.post<void, ForgotPasswordFormData>(
+        const res = await api.post<ForgotPasswordFormData>(
           "/auth/forgot-password",
           validatedData.data,
         );

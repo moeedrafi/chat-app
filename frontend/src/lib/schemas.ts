@@ -36,3 +36,18 @@ export const resetPasswordSchema = z
   });
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
+/* SETTINGS */
+export const settingsSchema = z
+  .object({
+    username: z.string().min(3, "username is required"),
+    email: z.email("Invalid email address"),
+    password: z.string().min(6, "Password should be 6 characters"),
+    newPassword: z.string().min(6, "New Password should be 6 characters"),
+  })
+  .refine((data) => data.password === data.newPassword, {
+    error: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type SettingsFormData = z.infer<typeof settingsSchema>;
