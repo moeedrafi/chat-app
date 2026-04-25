@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { User } from 'src/user/user.entity';
+import { FriendRequestStatus } from 'src/enum';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,40 @@ export class UserService {
       where: { username },
       select,
     });
+  }
+
+  async searchUsers(userId: number, username: string) {
+    const users = await this.repo
+      .createQueryBuilder('user')
+      .where('user.username ILIKE :username', { username: `%${username}%` })
+      .andWhere('user.id != :userId', { userId })
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('1')
+          .from('friend_request', 'f')
+          .where(
+            `(
+            (f.sender_id = :senderId AND f.receiver_id = user.id)
+            OR
+            (f.sender_id = user.id AND f.receiver_id = :receiverId)
+          )`,
+          )
+          .andWhere('f.status = :status')
+          .getQuery();
+
+        return `NOT EXISTS ${subQuery}`;
+      })
+      .setParameters({
+        userId,
+        senderId: userId,
+        receiverId: userId,
+        status: FriendRequestStatus.ACCEPTED,
+      })
+      .select(['user.id', 'user.email', 'user.username'])
+      .getMany();
+
+    return { data: users, message: 'Fetched users' };
   }
 
   async findById(
