@@ -25,6 +25,14 @@ export const RequestSearch = () => {
     setIsOpen(!!value);
   };
 
+  const sendRequest = async (username: string) => {
+    try {
+      await api.post("friend-request", { username });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -66,7 +74,12 @@ export const RequestSearch = () => {
                   <h6 className="text-sm font-medium">{user.username}</h6>
                 </div>
 
-                <Button className="px-3 py-0.5">Send</Button>
+                <Button
+                  className="px-3 py-0.5"
+                  onClick={() => sendRequest(user.username)}
+                >
+                  Send
+                </Button>
               </div>
             ))
           )}

@@ -35,6 +35,20 @@ export class FriendRequestController {
     return this.friendRequestService.remove(user.sub, friendId);
   }
 
+  @Serialize(FriendRequestDTO)
+  @Post(':friendid')
+  acceptRequest(
+    @CurrentUser() user: { sub: number },
+    @Param('friendid', ParseIntPipe) friendId: number,
+  ) {
+    return this.friendRequestService.accept(user.sub, friendId);
+  }
+
+  @Get('pending')
+  getPendingRequests(@CurrentUser() user: { sub: number }) {
+    return this.friendRequestService.pending(user.sub);
+  }
+
   @Get()
   getFriends(@CurrentUser() user: { sub: number }) {
     return this.friendRequestService.findAll(user.sub);

@@ -85,4 +85,32 @@ export class ConversationService {
       return { message: 'Convesation Deleted for all participants' };
     });
   }
+
+  async findAll(userId: number) {
+    const friends = await this.friendRequestService.findAll(userId);
+
+    const friendIds = friends.map((fr) => {
+      return fr.sender.id === userId ? fr.receiver.id : fr.sender.id;
+    });
+
+    // const existingConversation = await this.repo
+    //   .createQueryBuilder('conversation')
+    //   .innerJoin('conversation.participants', 'p1')
+    //   .innerJoin('p1.user', 'u1')
+    //   .innerJoin('conversation.participants', 'p2')
+    //   .innerJoin('p2.user', 'u2')
+    //   .where('u1.id = :userId', { userId })
+    //   .andWhere('u2.id IN (:...friendIds)', { friendIds })
+    //   .andWhere('p1.active = true')
+    //   .andWhere('p2.active = true')
+    //   .getMany();
+
+    // if (existingConversation) {
+    //   return existingConversation;
+    // }
+
+    for (const friendId of friendIds) {
+      return this.create(userId, friendId);
+    }
+  }
 }

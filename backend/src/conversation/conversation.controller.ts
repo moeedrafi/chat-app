@@ -29,6 +29,11 @@ export class ConversationController {
     return this.conversationService.findOne(user.sub, friendId);
   }
 
+  @Get()
+  getAllConversations(@CurrentUser() user: { sub: number }) {
+    return this.conversationService.findAll(user.sub);
+  }
+
   @Delete(':conversationid/hard')
   hardRemoveFriend(
     @CurrentUser() user: { sub: number },

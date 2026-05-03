@@ -1,4 +1,8 @@
+"use client";
 import { Button } from "@/components/ui/Button";
+import { api } from "@/lib/api";
+import type { PendingRequest } from "@/types/friends";
+import { useQuery } from "@tanstack/react-query";
 
 const requests = [
   { id: 1, username: "john_doe" },
@@ -8,6 +12,16 @@ const requests = [
 ];
 
 export const RequestList = () => {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["pending-request"],
+    queryFn: async () => {
+      const req = await api.get<PendingRequest[]>(`/friend-request/pending`);
+      return req.data;
+    },
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+
   return (
     <>
       {requests.length === 0 && (

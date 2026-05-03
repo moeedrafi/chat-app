@@ -17,7 +17,10 @@ export class FriendRequestService {
   ) {}
 
   async send(senderId: number, sentTo: string) {
-    const receiver = await this.userService.findOne(sentTo, ['id', 'username']);
+    const receiver = await this.userService.findByUsername(sentTo, [
+      'id',
+      'username',
+    ]);
     if (!receiver) throw new NotFoundException('receiver not exists');
 
     if (senderId === receiver.id) {
@@ -39,6 +42,26 @@ export class FriendRequestService {
     const savedRequest = await this.repo.save(request);
 
     return { data: savedRequest, message: 'Request sent successfully' };
+  }
+
+  async accept(receiverId: number, friendId: number) {
+    const sender = await this.userService.findById(friendId, {
+      select: ['id'],
+    });
+    if (!sender) throw new NotFoundException('sender not exists');
+
+    const existingRequest = await this.repo.findOne({
+      where: { sender: { id: sender.id }, receiver: { id: receiverId } },
+    });
+    if (!existingRequest) {
+      throw new ForbiddenException('request doesnt exists');
+    }
+
+    const acceptedRequest = this.repo.update(existingRequest.id, {
+      status: FriendRequestStatus.ACCEPTED,
+    });
+
+    return { data: acceptedRequest, message: 'Request accepted successfully' };
   }
 
   async remove(senderId: number, friendId: number) {
@@ -68,6 +91,7 @@ export class FriendRequestService {
         { sender: { id: userId }, status: FriendRequestStatus.ACCEPTED },
         { receiver: { id: userId }, status: FriendRequestStatus.ACCEPTED },
       ],
+      relations: ['sender', 'receiver'],
     });
 
     //   return this.repo
@@ -116,5 +140,13 @@ export class FriendRequestService {
         'Cannot create a conversation: users are not friends',
       );
     }
+  }
+
+  async pending(userId: number) {
+    return this.repo.find({
+      where: { receiver: { id: userId }, status: FriendRequestStatus.PENDING },
+      relations: ['sender'],
+      select: ['sender'],
+    });
   }
 }
