@@ -14,11 +14,7 @@ export class MessageService {
     private readonly friendRequestService: FriendRequestService,
   ) {}
 
-  async create(
-    senderId: number,
-    conversationId: string,
-    body: { message: string },
-  ) {
+  async create(senderId: number, conversationId: string, message: string) {
     const conversation = await this.conversationService.findById(
       conversationId,
       senderId,
@@ -27,14 +23,14 @@ export class MessageService {
     const users = conversation.participants.map((u) => u.user.id);
     await this.friendRequestService.findFriend(users[0], users[1]);
 
-    const message = this.repo.create({
-      ...body,
+    const createdMessage = this.repo.create({
+      message,
       conversation: { id: conversationId },
       sender: { id: senderId },
     });
 
     return {
-      data: this.repo.save(message),
+      data: this.repo.save(createdMessage),
       message: 'send message successfully',
     };
   }

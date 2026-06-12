@@ -1,4 +1,7 @@
+"use client";
+import { socket } from "@/lib/socket";
 import { formatSeenAt } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const messages = [
   {
@@ -53,8 +56,33 @@ const messages = [
 ];
 
 export const Messages = () => {
+  const [message, setMessage] = useState<{ message: string; id: string }[]>([]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log(socket.id);
+    });
+
+    socket.emit("joinRoom", { roomId: "2" });
+
+    socket.on("receiveMessage", (newMessages) => {
+      console.log(newMessages);
+      setMessage((prev) => [...prev, newMessages]);
+    });
+
+    return () => {
+      socket.emit("leaveRoom", { roomId: "2" }); // leave on unmount
+      socket.off("connect");
+      socket.off("receiveMessage");
+    };
+  }, []);
+
   return (
     <div className="w-full flex-1 flex flex-col gap-3 px-3 max-w-7xl mx-auto overflow-auto hide-scrollbar">
+      {message.map((m) => (
+        <p key={m.id}>{m.message}</p>
+      ))}
+
       {messages.map((message) => {
         const isOwn = message.sender === "john_doe";
 

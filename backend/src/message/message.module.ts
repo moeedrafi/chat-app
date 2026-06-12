@@ -14,5 +14,6 @@ import { FriendRequestModule } from 'src/friend-request/friend-request.module';
   ],
   controllers: [MessageController],
   providers: [MessageService],
+  exports: [MessageService],
 })
 export class MessageModule {}

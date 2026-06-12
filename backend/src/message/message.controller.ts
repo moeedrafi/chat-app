@@ -20,7 +20,7 @@ export class MessageController {
     @Param('conversationid', ParseUUIDPipe) conversationId: string,
     @Body() body: { message: string },
   ) {
-    return this.messageService.create(user.sub, conversationId, body);
+    return this.messageService.create(user.sub, conversationId, body.message);
   }
 
   @Delete(':conversationid/:messageid')
