@@ -1,4 +1,4 @@
-import { ILike, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
@@ -27,35 +27,30 @@ export class UserService {
   }
 
   async searchUsers(userId: number, username: string) {
+    console.time('search');
     const users = await this.repo
       .createQueryBuilder('user')
+      .leftJoin(
+        'friend_request',
+        'f',
+        `(
+        (f.sender_id = :userId AND f.receiver_id = user.id)
+        OR
+        (f.sender_id = user.id AND f.receiver_id = :userId)
+      )`,
+      )
       .where('user.username ILIKE :username', { username: `%${username}%` })
       .andWhere('user.id != :userId', { userId })
-      .andWhere((qb) => {
-        const subQuery = qb
-          .subQuery()
-          .select('1')
-          .from('friend_request', 'f')
-          .where(
-            `(
-            (f.sender_id = :senderId AND f.receiver_id = user.id)
-            OR
-            (f.sender_id = user.id AND f.receiver_id = :receiverId)
-          )`,
-          )
-          .andWhere('f.status = :status')
-          .getQuery();
+      .select([
+        'user.id AS "id"',
+        'user.email AS "email"',
+        'user.username AS "username"',
+        'f.status AS "friendStatus"',
+      ])
+      .setParameter('userId', userId)
+      .getRawMany();
 
-        return `NOT EXISTS ${subQuery}`;
-      })
-      .setParameters({
-        userId,
-        senderId: userId,
-        receiverId: userId,
-        status: FriendRequestStatus.ACCEPTED,
-      })
-      .select(['user.id', 'user.email', 'user.username'])
-      .getMany();
+    console.timeEnd('search');
 
     return { data: users, message: 'Fetched users' };
   }

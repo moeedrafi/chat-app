@@ -1,37 +1,38 @@
 "use client";
-import { api } from "@/lib/api";
-import { Button } from "@/components/ui/Button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import type { User } from "@/types/user";
+
+import { api } from "@/lib/api";
+import { RequestModal } from "./RequestModal";
+import { useDebounce } from "@/hooks/useDebounce";
+import { FriendRequestStatus } from "@/types/enums";
+
+type SearchedUsers = {
+  id: number;
+  email: string;
+  username: string;
+  friendStatus: FriendRequestStatus;
+};
 
 export const RequestSearch = () => {
   const [search, setSearch] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+
+  const isOpen = isFocused && search.length > 0;
+
+  const debouncedSearch = useDebounce(search);
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["search-users", search],
+    queryKey: ["search-users", debouncedSearch],
     queryFn: async () => {
-      const req = await api.get<User[]>(`/user/search/${search}`);
+      const req = await api.get<SearchedUsers[]>(
+        `/user/search/${debouncedSearch.trim()}`,
+      );
       return req.data;
     },
-    enabled: !!search,
+    enabled: debouncedSearch.trim().length > 0,
   });
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearch(value);
-    setIsOpen(!!value);
-  };
-
-  const sendRequest = async (username: string) => {
-    try {
-      await api.post("friend-request", { username });
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,7 +40,7 @@ export const RequestSearch = () => {
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsFocused(false);
       }
     };
 
@@ -52,38 +53,21 @@ export const RequestSearch = () => {
     <div className="relative" ref={containerRef}>
       <input
         value={search}
-        onChange={handleSearch}
+        onChange={(e) => {
+          const value = e.target.value;
+          setSearch(value);
+          setIsFocused(Boolean(value));
+        }}
         placeholder="Search for users"
         className="w-full text-sm bg-light px-3 py-2 rounded-t-xl ring-1 ring-color focus-visible:ring-2 outline-none disabled:cursor-not-allowed disabled:opacity-50"
       />
 
       {isOpen && (
-        <div className="absolute w-full px-3 py-2 bg-bg ring-1 ring-color rounded-b-lg divide-y divide-color">
-          {isLoading ? (
-            <div className="py-3 text-sm text-muted">Searching...</div>
-          ) : users.length === 0 ? (
-            <div className="py-3 text-sm text-muted">No users found</div>
-          ) : (
-            users.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-red-500 shrink-0" />
-                  <h6 className="text-sm font-medium">{user.username}</h6>
-                </div>
-
-                <Button
-                  className="px-3 py-0.5"
-                  onClick={() => sendRequest(user.username)}
-                >
-                  Send
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
+        <RequestModal
+          isLoading={isLoading}
+          users={users}
+          searched={debouncedSearch}
+        />
       )}
     </div>
   );

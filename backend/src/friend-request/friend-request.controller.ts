@@ -12,6 +12,7 @@ import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FriendRequestDTO } from 'src/friend-request/dtos/friend-request.dto';
 import { FriendRequestService } from 'src/friend-request/friend-request.service';
+import { PendingRequestDTO } from 'src/friend-request/dtos/pending-request.dto';
 
 @Controller('friend-request')
 export class FriendRequestController {
@@ -23,7 +24,7 @@ export class FriendRequestController {
     @Body() body: SendRequestDTO,
     @CurrentUser() user: { sub: number },
   ) {
-    return this.friendRequestService.send(user.sub, body.username);
+    return this.friendRequestService.send(user.sub, body.userId);
   }
 
   @Serialize(FriendRequestDTO)
@@ -44,6 +45,7 @@ export class FriendRequestController {
     return this.friendRequestService.accept(user.sub, friendId);
   }
 
+  @Serialize(PendingRequestDTO)
   @Get('pending')
   getPendingRequests(@CurrentUser() user: { sub: number }) {
     return this.friendRequestService.pending(user.sub);

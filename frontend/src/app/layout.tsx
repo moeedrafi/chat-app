@@ -7,7 +7,7 @@ import Providers from "./providers";
 const lato = Lato({
   variable: "--font-lato",
   subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"],
+  weight: ["400", "700"],
   display: "swap",
 });
 

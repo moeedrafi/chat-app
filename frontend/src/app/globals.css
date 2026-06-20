@@ -86,7 +86,7 @@
 body {
   background: var(--bg-dark);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lato), sans-serif;
 }
 
 /* Hide scrollbar for Chrome, Safari, Opera, Edge (newer) */

@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FriendRequestStatus } from 'src/enum';
 import { UserService } from 'src/user/user.service';
 import { FriendRequest } from 'src/friend-request/friend-request.entity';
+import { ApiResponseDto } from 'src/types';
+import { PendingRequestDTO } from './dtos/pending-request.dto';
 
 @Injectable()
 export class FriendRequestService {
@@ -16,19 +18,17 @@ export class FriendRequestService {
     private readonly userService: UserService,
   ) {}
 
-  async send(senderId: number, sentTo: string) {
-    const receiver = await this.userService.findByUsername(sentTo, [
-      'id',
-      'username',
-    ]);
-    if (!receiver) throw new NotFoundException('receiver not exists');
-
-    if (senderId === receiver.id) {
+  async send(senderId: number, receiverId: number) {
+    console.time('SEND');
+    if (senderId === receiverId) {
       throw new ForbiddenException('cannot send a req to yourself');
     }
 
+    const receiver = await this.userService.findById(receiverId);
+    if (!receiver) throw new NotFoundException('receiver not exists');
+
     const existingRequest = await this.repo.findOne({
-      where: { sender: { id: senderId }, receiver: { id: receiver.id } },
+      where: { sender: { id: senderId }, receiver: { id: receiverId } },
     });
     if (existingRequest) {
       throw new ForbiddenException('already a request is sent');
@@ -40,6 +40,8 @@ export class FriendRequestService {
     });
 
     const savedRequest = await this.repo.save(request);
+
+    console.timeEnd('SEND');
 
     return { data: savedRequest, message: 'Request sent successfully' };
   }
@@ -142,11 +144,12 @@ export class FriendRequestService {
     }
   }
 
-  async pending(userId: number) {
-    return this.repo.find({
+  async pending(userId: number): Promise<ApiResponseDto<PendingRequestDTO[]>> {
+    const pendingRequests = await this.repo.find({
       where: { receiver: { id: userId }, status: FriendRequestStatus.PENDING },
-      relations: ['sender'],
-      select: ['sender'],
+      relations: { sender: true },
     });
+
+    return { data: pendingRequests, message: 'Pending request fetched' };
   }
 }
