@@ -14,7 +14,7 @@ export const RequestList = () => {
     refetchOnWindowFocus: false,
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <p>Loading...</p>; // TODO: SKELTON LOADER
 
   return (
     <>
@@ -28,12 +28,7 @@ export const RequestList = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 rounded-lg">
           {requests.map((request) => (
-            <RequestCard
-              request={request}
-              key={request.id}
-              onAccept={() => {}}
-              onDecline={() => {}}
-            />
+            <RequestCard request={request} key={request.id} />
           ))}
         </div>
       )}

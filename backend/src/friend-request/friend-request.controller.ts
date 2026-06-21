@@ -27,7 +27,6 @@ export class FriendRequestController {
     return this.friendRequestService.send(user.sub, body.userId);
   }
 
-  @Serialize(FriendRequestDTO)
   @Delete(':friendid')
   removeFriend(
     @CurrentUser() user: { sub: number },
@@ -36,7 +35,6 @@ export class FriendRequestController {
     return this.friendRequestService.remove(user.sub, friendId);
   }
 
-  @Serialize(FriendRequestDTO)
   @Post(':friendid')
   acceptRequest(
     @CurrentUser() user: { sub: number },

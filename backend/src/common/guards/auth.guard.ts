@@ -86,6 +86,7 @@ export class AuthGuard implements CanActivate {
       httpOnly: true,
       sameSite: 'strict' as const,
       secure: this.configService.get('NODE_ENV') === 'production',
+      path: '/',
     };
 
     response.cookie('access_token', newAccess, cookieOptions);

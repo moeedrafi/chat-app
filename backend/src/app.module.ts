@@ -13,6 +13,7 @@ import { ConversationParticipantModule } from './conversation-participant/conver
 import { MessageModule } from './message/message.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ChatModule } from './chat/chat.module';
+import { FriendModule } from './friend/friend.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ChatModule } from './chat/chat.module';
     ConversationParticipantModule,
     MessageModule,
     ChatModule,
+    FriendModule,
   ],
   controllers: [AppController],
   providers: [

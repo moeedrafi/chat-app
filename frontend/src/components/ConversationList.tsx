@@ -13,48 +13,6 @@ const conversations = [
     avatar: "https://picsum.photos/200/300",
   },
   {
-    id: 2,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 3,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 4,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 5,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 6,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 7,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 8,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
     id: 9,
     username: "Doe",
     lastMessage: "I'm fine",

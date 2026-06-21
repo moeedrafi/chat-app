@@ -20,9 +20,10 @@ export const Button = ({
   const variantClasses = {
     primary: "bg-primary hover:bg-primary/80",
     secondary: "bg-secondary hover:bg-secondary/80",
-    ghost: "border border-secondary text-secondary hover:bg-secondary/5",
+    ghost:
+      "bg-dark text-muted-foreground border-color hover:bg-bg hover:text-text",
     destructive: "bg-rose-600 hover:bg-rose-500",
-    outline: "border border-color bg-dark hover:bg-bg text-muted-foreground",
+    outline: "border-color bg-dark hover:bg-bg text-muted-foreground",
   }[variant];
 
   return (

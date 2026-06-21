@@ -19,7 +19,6 @@ export class FriendRequestService {
   ) {}
 
   async send(senderId: number, receiverId: number) {
-    console.time('SEND');
     if (senderId === receiverId) {
       throw new ForbiddenException('cannot send a req to yourself');
     }
@@ -40,9 +39,6 @@ export class FriendRequestService {
     });
 
     const savedRequest = await this.repo.save(request);
-
-    console.timeEnd('SEND');
-
     return { data: savedRequest, message: 'Request sent successfully' };
   }
 
@@ -59,32 +55,31 @@ export class FriendRequestService {
       throw new ForbiddenException('request doesnt exists');
     }
 
-    const acceptedRequest = this.repo.update(existingRequest.id, {
+    await this.repo.update(existingRequest.id, {
       status: FriendRequestStatus.ACCEPTED,
     });
 
-    return { data: acceptedRequest, message: 'Request accepted successfully' };
+    return { message: 'Request accepted successfully' };
   }
 
-  async remove(senderId: number, friendId: number) {
-    const request = await this.repo.findOne({
-      where: [
-        { sender: { id: senderId }, receiver: { id: friendId } },
-        { sender: { id: friendId }, receiver: { id: senderId } },
-      ],
+  async remove(receiverId: number, friendId: number) {
+    const sender = await this.userService.findById(friendId, {
+      select: ['id'],
+    });
+    if (!sender) throw new NotFoundException('sender not exists');
+
+    const existingRequest = await this.repo.findOne({
+      where: { sender: { id: sender.id }, receiver: { id: receiverId } },
+    });
+    if (!existingRequest) {
+      throw new ForbiddenException('request doesnt exists');
+    }
+
+    await this.repo.update(existingRequest.id, {
+      status: FriendRequestStatus.REJECTED,
     });
 
-    if (!request) {
-      throw new NotFoundException('no friend found');
-    }
-
-    if (request.status !== FriendRequestStatus.ACCEPTED) {
-      throw new NotFoundException('not a friend');
-    }
-
-    await this.repo.remove(request);
-
-    return { message: 'Removed friend and conversation successfully' };
+    return { message: 'Request denied successfully' };
   }
 
   findAll(userId: number) {
