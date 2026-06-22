@@ -14,6 +14,14 @@ export class FriendController {
     return this.friendService.remove(user.sub, friendId);
   }
 
+  @Get('username')
+  getSingleFriend(
+    @CurrentUser() user: { sub: number },
+    @Param('username') username: string,
+  ) {
+    return this.friendService.findOne(user.sub, username);
+  }
+
   @Get()
   getFriends(@CurrentUser() user: { sub: number }) {
     return this.friendService.findAll(user.sub);

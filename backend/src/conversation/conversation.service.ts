@@ -2,14 +2,12 @@ import { Repository, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Conversation } from 'src/conversation/conversation.entity';
-import { FriendRequestService } from 'src/friend-request/friend-request.service';
 
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectRepository(Conversation) private repo: Repository<Conversation>,
     private readonly dataSource: DataSource,
-    private readonly friendRequestService: FriendRequestService,
   ) {}
 
   async create(currentUserId: number, friendId: number) {
@@ -25,7 +23,7 @@ export class ConversationService {
   }
 
   async findOne(currentUserId: number, friendId: number) {
-    await this.friendRequestService.findFriend(currentUserId, friendId);
+    // await this.friendRequestService.findFriend(currentUserId, friendId);
 
     const existingConversation = await this.repo
       .createQueryBuilder('conversation')
@@ -87,12 +85,10 @@ export class ConversationService {
   }
 
   async findAll(userId: number) {
-    const friends = await this.friendRequestService.findAll(userId);
-
-    const friendIds = friends.map((fr) => {
-      return fr.sender.id === userId ? fr.receiver.id : fr.sender.id;
-    });
-
+    // const friends = await this.friendRequestService.findAll(userId);
+    // const friendIds = friends.map((fr) => {
+    //   return fr.sender.id === userId ? fr.receiver.id : fr.sender.id;
+    // });
     // const existingConversation = await this.repo
     //   .createQueryBuilder('conversation')
     //   .innerJoin('conversation.participants', 'p1')
@@ -104,13 +100,11 @@ export class ConversationService {
     //   .andWhere('p1.active = true')
     //   .andWhere('p2.active = true')
     //   .getMany();
-
     // if (existingConversation) {
     //   return existingConversation;
     // }
-
-    for (const friendId of friendIds) {
-      return this.create(userId, friendId);
-    }
+    // for (const friendId of friendIds) {
+    //   return this.create(userId, friendId);
+    // }
   }
 }

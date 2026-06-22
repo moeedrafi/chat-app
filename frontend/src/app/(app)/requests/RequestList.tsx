@@ -8,7 +8,7 @@ export const RequestList = () => {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["pending-request"],
     queryFn: async () => {
-      const req = await api.get<PendingRequest[]>(`/friend-request/pending`);
+      const req = await api.get<PendingRequest[]>(`/friend-request`);
       return req.data;
     },
     refetchOnWindowFocus: false,

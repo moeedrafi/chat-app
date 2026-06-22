@@ -1,38 +1,37 @@
-import { FriendRequestStatus } from 'src/enum';
-import { User } from 'src/user/user.entity';
 import {
   Column,
-  CreateDateColumn,
+  Unique,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  BeforeInsert,
+  CreateDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
+@Unique(['requestKey'])
 export class FriendRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'sender_id' })
-  sender: User;
+  @Column()
+  requestKey: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'receiver_id' })
-  receiver: User;
+  @Column()
+  senderId: number;
 
-  @Column({
-    type: 'enum',
-    enum: FriendRequestStatus,
-    default: FriendRequestStatus.PENDING,
-  })
-  status: FriendRequestStatus;
+  @Column()
+  receiverId: number;
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @BeforeInsert()
+  generateRequestKey() {
+    const ids = [this.senderId, this.receiverId].sort((a, b) => a - b);
+    this.requestKey = `${ids[0]}_${ids[1]}`;
+  }
 }

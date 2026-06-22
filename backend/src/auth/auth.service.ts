@@ -100,7 +100,7 @@ export class AuthService {
 
       // 2️⃣ fetch user + hashed refresh token
       const user = await this.userService.findById(payload.sub, {
-        select: ['refreshToken'],
+        select: ['id', 'refreshToken'],
       });
       if (!user || !user.refreshToken) throw new UnauthorizedException();
 

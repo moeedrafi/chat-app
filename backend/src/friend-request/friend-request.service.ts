@@ -5,17 +5,18 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FriendRequestStatus } from 'src/enum';
-import { UserService } from 'src/user/user.service';
-import { FriendRequest } from 'src/friend-request/friend-request.entity';
 import { ApiResponseDto } from 'src/types';
-import { PendingRequestDTO } from './dtos/pending-request.dto';
+import { UserService } from 'src/user/user.service';
+import { FriendService } from 'src/friend/friend.service';
+import { FriendRequest } from 'src/friend-request/friend-request.entity';
+import { PendingRequestDTO } from 'src/friend-request/dtos/pending-request.dto';
 
 @Injectable()
 export class FriendRequestService {
   constructor(
     @InjectRepository(FriendRequest) private repo: Repository<FriendRequest>,
     private readonly userService: UserService,
+    private readonly friendService: FriendService,
   ) {}
 
   async send(senderId: number, receiverId: number) {
@@ -27,37 +28,21 @@ export class FriendRequestService {
     if (!receiver) throw new NotFoundException('receiver not exists');
 
     const existingRequest = await this.repo.findOne({
-      where: { sender: { id: senderId }, receiver: { id: receiverId } },
+      where: { senderId, receiverId },
     });
     if (existingRequest) {
       throw new ForbiddenException('already a request is sent');
     }
 
-    const request = this.repo.create({
-      receiver,
-      sender: { id: senderId },
-    });
-
+    const request = this.repo.create({ receiverId, senderId });
     const savedRequest = await this.repo.save(request);
+
     return { data: savedRequest, message: 'Request sent successfully' };
   }
 
   async accept(receiverId: number, friendId: number) {
-    const sender = await this.userService.findById(friendId, {
-      select: ['id'],
-    });
-    if (!sender) throw new NotFoundException('sender not exists');
-
-    const existingRequest = await this.repo.findOne({
-      where: { sender: { id: sender.id }, receiver: { id: receiverId } },
-    });
-    if (!existingRequest) {
-      throw new ForbiddenException('request doesnt exists');
-    }
-
-    await this.repo.update(existingRequest.id, {
-      status: FriendRequestStatus.ACCEPTED,
-    });
+    await this.remove(receiverId, friendId);
+    await this.friendService.create(receiverId, friendId);
 
     return { message: 'Request accepted successfully' };
   }
@@ -69,82 +54,32 @@ export class FriendRequestService {
     if (!sender) throw new NotFoundException('sender not exists');
 
     const existingRequest = await this.repo.findOne({
-      where: { sender: { id: sender.id }, receiver: { id: receiverId } },
+      where: { senderId: sender.id, receiverId },
     });
     if (!existingRequest) {
       throw new ForbiddenException('request doesnt exists');
     }
 
-    await this.repo.update(existingRequest.id, {
-      status: FriendRequestStatus.REJECTED,
-    });
-
+    await this.repo.delete(existingRequest.id);
     return { message: 'Request denied successfully' };
-  }
-
-  findAll(userId: number) {
-    return this.repo.find({
-      where: [
-        { sender: { id: userId }, status: FriendRequestStatus.ACCEPTED },
-        { receiver: { id: userId }, status: FriendRequestStatus.ACCEPTED },
-      ],
-      relations: ['sender', 'receiver'],
-    });
-
-    //   return this.repo
-    // .createQueryBuilder('fr')
-    // .leftJoinAndSelect('fr.sender', 'sender')
-    // .leftJoinAndSelect('fr.receiver', 'receiver')
-    // .where('(sender.id = :userId OR receiver.id = :userId) AND fr.status = :status', {
-    //   userId,
-    //   status: FriendRequestStatus.ACCEPTED,
-    // })
-    // .getMany();
-
-    //   return this.repo
-    // .createQueryBuilder('fr')
-    // .leftJoin('fr.sender', 'sender')
-    // .leftJoin('fr.receiver', 'receiver')
-    // .select([
-    //   'CASE WHEN sender.id = :userId THEN receiver.id ELSE sender.id END AS friendId',
-    //   'CASE WHEN sender.id = :userId THEN receiver.name ELSE sender.name END AS friendName',
-    // ])
-    // .where('(sender.id = :userId OR receiver.id = :userId) AND fr.status = :status', {
-    //   userId,
-    //   status: FriendRequestStatus.ACCEPTED,
-    // })
-    // .getRawMany();
-  }
-
-  async findFriend(userId: number, friendId: number) {
-    const friendship = await this.repo.findOne({
-      where: [
-        {
-          sender: { id: userId },
-          receiver: { id: friendId },
-          status: FriendRequestStatus.ACCEPTED,
-        },
-        {
-          sender: { id: friendId },
-          receiver: { id: userId },
-          status: FriendRequestStatus.ACCEPTED,
-        },
-      ],
-    });
-
-    if (!friendship) {
-      throw new ForbiddenException(
-        'Cannot create a conversation: users are not friends',
-      );
-    }
   }
 
   async pending(userId: number): Promise<ApiResponseDto<PendingRequestDTO[]>> {
     const pendingRequests = await this.repo.find({
-      where: { receiver: { id: userId }, status: FriendRequestStatus.PENDING },
-      relations: { sender: true },
+      where: { receiverId: userId },
     });
 
-    return { data: pendingRequests, message: 'Pending request fetched' };
+    const senderIds = [...new Set(pendingRequests.map((r) => r.senderId))];
+
+    const senderUsers = await this.userService.findByIds(senderIds);
+    const usersMap = new Map(senderUsers.map((u) => [u.id, u]));
+
+    return {
+      data: pendingRequests.map((request) => ({
+        id: request.id,
+        sender: usersMap.get(request.senderId)!,
+      })),
+      message: 'Pending request fetched',
+    };
   }
 }

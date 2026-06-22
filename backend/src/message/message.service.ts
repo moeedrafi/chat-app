@@ -21,7 +21,7 @@ export class MessageService {
     );
 
     const users = conversation.participants.map((u) => u.user.id);
-    await this.friendRequestService.findFriend(users[0], users[1]);
+    // await this.friendRequestService.findFriend(users[0], users[1]);
 
     const createdMessage = this.repo.create({
       message,
@@ -42,7 +42,7 @@ export class MessageService {
     );
 
     const users = conversation.participants.map((u) => u.user.id);
-    await this.friendRequestService.findFriend(users[0], users[1]);
+    // await this.friendRequestService.findFriend(users[0], users[1]);
 
     const message = await this.repo.findOne({
       where: {
@@ -68,7 +68,7 @@ export class MessageService {
     );
 
     const users = conversation.participants.map((u) => u.user.id);
-    await this.friendRequestService.findFriend(users[0], users[1]);
+    // await this.friendRequestService.findFriend(users[0], users[1]);
 
     // const unseenMessage = await this.repo.find({
     //   where: {

@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { User } from 'src/user/user.entity';
-import { FriendRequestStatus } from 'src/enum';
 
 @Injectable()
 export class UserService {
@@ -27,16 +26,24 @@ export class UserService {
   }
 
   async searchUsers(userId: number, username: string) {
-    console.time('search');
     const users = await this.repo
       .createQueryBuilder('user')
       .leftJoin(
         'friend_request',
+        'fr',
+        `(
+        (fr.senderId = :userId AND fr.receiverId = user.id)
+        OR
+        (fr.senderId = user.id AND fr.receiverId = :userId)
+      )`,
+      )
+      .leftJoin(
+        'friend',
         'f',
         `(
-        (f.sender_id = :userId AND f.receiver_id = user.id)
+        (f.userAId = :userId AND f.userBId = user.id)
         OR
-        (f.sender_id = user.id AND f.receiver_id = :userId)
+        (f.userAId = user.id AND f.userBId = :userId)
       )`,
       )
       .where('user.username ILIKE :username', { username: `%${username}%` })
@@ -45,12 +52,19 @@ export class UserService {
         'user.id AS "id"',
         'user.email AS "email"',
         'user.username AS "username"',
-        'f.status AS "friendStatus"',
       ])
+      .addSelect(
+        `
+          CASE
+            WHEN f.id IS NOT NULL THEN 'FRIENDS'
+            WHEN fr.id IS NOT NULL THEN 'PENDING'
+            ELSE 'NONE'
+          END
+        `,
+        'relationshipStatus',
+      )
       .setParameter('userId', userId)
       .getRawMany();
-
-    console.timeEnd('search');
 
     return { data: users, message: 'Fetched users' };
   }
@@ -109,5 +123,11 @@ export class UserService {
 
   async updateRefreshToken(id: number, hashedToken: string) {
     await this.repo.update(id, { refreshToken: hashedToken });
+  }
+
+  async findByIds(ids: number[]) {
+    return this.repo.find({
+      where: { id: In(ids) },
+    });
   }
 }

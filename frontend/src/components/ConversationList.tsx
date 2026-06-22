@@ -3,7 +3,6 @@ import Image from "next/image";
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Friends } from "@/types/friends";
 
 const conversations = [
   {
@@ -43,15 +42,15 @@ export const ConversationList = () => {
     number | null
   >(null);
 
-  // const { data = [], isLoading } = useQuery({
-  //   queryKey: ["conversations"],
-  //   queryFn: async () => {
-  //     const req = await api.get<Friends[]>(`/conversation`);
-  //     return req.data;
-  //   },
-  // });
+  const { data, isLoading } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: async () => {
+      const req = await api.get(`/friend`);
+      return req.data;
+    },
+  });
 
-  // if (isLoading) return <p>LOADING...</p>;
+  if (isLoading) return <p>LOADING...</p>;
 
   return (
     <ul className="flex-1 flex flex-col gap-2 overflow-auto hide-scrollbar">

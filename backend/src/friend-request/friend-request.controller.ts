@@ -44,13 +44,8 @@ export class FriendRequestController {
   }
 
   @Serialize(PendingRequestDTO)
-  @Get('pending')
+  @Get()
   getPendingRequests(@CurrentUser() user: { sub: number }) {
     return this.friendRequestService.pending(user.sub);
-  }
-
-  @Get()
-  getFriends(@CurrentUser() user: { sub: number }) {
-    return this.friendRequestService.findAll(user.sub);
   }
 }
