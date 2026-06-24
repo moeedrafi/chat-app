@@ -4,7 +4,11 @@ import { socket } from "@/lib/socket";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export const ConversationInput = () => {
+export const ConversationInput = ({
+  conversationId,
+}: {
+  conversationId: string;
+}) => {
   const [clientId, setClientId] = useState<string | undefined>();
   const [message, setMessage] = useState<string>("");
 
@@ -13,7 +17,7 @@ export const ConversationInput = () => {
 
     socket.emit("sendMessage", {
       senderId: 1,
-      conversationId: "2",
+      conversationId,
       message,
     });
     setMessage("");

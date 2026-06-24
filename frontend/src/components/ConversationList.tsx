@@ -1,79 +1,53 @@
 "use client";
-import Image from "next/image";
+import Link from "next/link";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { FriendList } from "@/types/friends";
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-
-const conversations = [
-  {
-    id: 1,
-    username: "John Doe",
-    lastMessage: "What are you doing?",
-    avatar: "https://picsum.photos/200/300",
-  },
-  {
-    id: 9,
-    username: "Doe",
-    lastMessage: "I'm fine",
-    avatar: "https://picsum.photos/300/300",
-  },
-  {
-    id: 10,
-    username: "Johnny",
-    lastMessage: "What are you?",
-    avatar: "https://picsum.photos/300/300",
-  },
-  {
-    id: 11,
-    username: "Johnny",
-    lastMessage: "What are you?",
-    avatar: "https://picsum.photos/300/300",
-  },
-  {
-    id: 12,
-    username: "Johnny",
-    lastMessage: "What are you?",
-    avatar: "https://picsum.photos/300/300",
-  },
-];
+import { MessageCircleMore } from "lucide-react";
 
 export const ConversationList = () => {
-  const [activeConversationId, setActiveConversationId] = useState<
-    number | null
-  >(null);
+  const pathname = usePathname();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["conversations"],
+  const { data: friends = [], isLoading } = useQuery({
+    queryKey: ["friends"],
     queryFn: async () => {
-      const req = await api.get(`/friend`);
+      const req = await api.get<FriendList[]>(`/friend`);
       return req.data;
     },
   });
 
   if (isLoading) return <p>LOADING...</p>;
 
+  if (friends?.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+        <MessageCircleMore />
+        <p>Add friends to chat</p>
+      </div>
+    );
+  }
+
   return (
     <ul className="flex-1 flex flex-col gap-2 overflow-auto hide-scrollbar">
-      {conversations.map(({ id, lastMessage, username, avatar }) => (
-        <li
-          key={id}
-          onClick={() => setActiveConversationId(id)}
-          className={`flex items-center gap-3 p-2 rounded-lg border ${activeConversationId === id ? "bg-light border-gradient" : "hover:bg-bg border-transparent"}`}
-        >
-          <Image
-            src={avatar}
-            alt=""
-            width={48}
-            height={48}
-            className="w-12 h-12 object-cover rounded-full"
-          />
+      {friends.map(({ id, username, conversationId }) => {
+        const isActive = pathname === `/conversation/${conversationId}`;
 
-          <div>
-            <h6 className="font-semibold">{username}</h6>
-            <span className="text-xs text-muted-foreground">{lastMessage}</span>
-          </div>
-        </li>
-      ))}
+        return (
+          <Link
+            key={id}
+            href={`/conversation/${conversationId}`}
+            className={`flex items-center gap-3 p-2 rounded-lg border ${isActive ? "bg-light border-gradient" : "border-transparent hover:bg-bg hover:border-color"}`}
+          >
+            <div className="w-12 h-12 rounded-full bg-red-500 shrink-0" />
+
+            <div>
+              <h6 className="font-semibold">{username}</h6>
+              <span className="text-xs text-muted-foreground">Active</span>
+            </div>
+          </Link>
+        );
+      })}
     </ul>
   );
 };

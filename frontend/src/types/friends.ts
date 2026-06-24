@@ -1,8 +1,13 @@
 import type { User } from "./user";
-import { FriendRequestStatus } from "./enums";
 
 export interface PendingRequest {
   id: string;
-  status: FriendRequestStatus.PENDING;
   sender: User;
+}
+
+export interface FriendList {
+  id: string;
+  userId: number;
+  username: string;
+  conversationId: string;
 }

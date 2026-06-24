@@ -49,6 +49,8 @@ export const RequestCard = ({ request }: { request: PendingRequest }) => {
     },
     // Always refetch after error or success:
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["friends"] });
+
       return queryClient.invalidateQueries({
         queryKey: ["pending-request"],
       });

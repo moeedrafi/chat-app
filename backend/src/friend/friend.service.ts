@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Injectable,
@@ -9,12 +9,15 @@ import {
 } from '@nestjs/common';
 import { Friend } from 'src/friend/friend.entity';
 import { UserService } from 'src/user/user.service';
+import { ConversationService } from 'src/conversation/conversation.service';
 
 @Injectable()
 export class FriendService {
   constructor(
     @InjectRepository(Friend) private repo: Repository<Friend>,
+    private readonly dataSource: DataSource,
     private readonly userService: UserService,
+    private readonly conversationService: ConversationService,
   ) {}
 
   async create(currentUserId: number, friendId: number) {
@@ -22,13 +25,23 @@ export class FriendService {
       throw new BadRequestException('You cannot add yourself as a friend');
     }
 
-    const friend = this.repo.create({
-      userAId: currentUserId,
-      userBId: friendId,
-    });
-
     try {
-      await this.repo.save(friend);
+      await this.dataSource.transaction(async (manager) => {
+        const conversationId = await this.conversationService.create(
+          currentUserId,
+          friendId,
+          manager,
+        );
+
+        const friendRepo = manager.getRepository(Friend);
+        const friend = friendRepo.create({
+          userBId: friendId,
+          userAId: currentUserId,
+          conversationId: conversationId,
+        });
+
+        await friendRepo.save(friend);
+      });
     } catch (error: any) {
       // PostgreSQL unique violation
       if (error.code === '23505') {
@@ -52,20 +65,17 @@ export class FriendService {
     const users = await this.userService.findByIds([...new Set(otherUserIds)]);
     const usersMap = new Map(users.map((user) => [user.id, user]));
 
-    // TODO: Conversation id from conversation service
-
     const data = friends.map((friend) => {
       const otherUserId =
         friend.userAId === currentUserId ? friend.userBId : friend.userAId;
 
-      const { username, email } = usersMap.get(otherUserId) ?? {};
+      const { username } = usersMap.get(otherUserId) ?? {};
 
       return {
-        friendshipId: friend.id,
-        friendshipKey: friend.friendshipKey,
-        id: otherUserId,
         username,
-        email,
+        id: friend.id,
+        userId: otherUserId,
+        conversationId: friend.conversationId,
       };
     });
 

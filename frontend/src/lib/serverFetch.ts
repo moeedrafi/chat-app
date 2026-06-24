@@ -1,11 +1,10 @@
 "use server";
-
 import { cookies } from "next/headers";
 
 export async function serverFetch(url: string, options?: RequestInit) {
   const cookieStore = await cookies();
 
-  const response = await fetch(`${process.env.API_URL}${url}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
     ...options,
     headers: {
       Cookie: cookieStore.toString(),
@@ -13,5 +12,5 @@ export async function serverFetch(url: string, options?: RequestInit) {
     },
   });
 
-  return response;
+  return response.json();
 }

@@ -94,4 +94,12 @@ export class MessageService {
 
     return { message: 'Messages marked as seen' };
   }
+
+  async findAll(conversationId: string) {
+    const messages = await this.repo.find({
+      where: { conversation: { id: conversationId } },
+    });
+
+    return { data: messages, message: 'Fetched messages successfully' };
+  }
 }

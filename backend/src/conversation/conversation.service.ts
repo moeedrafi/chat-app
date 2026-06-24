@@ -1,5 +1,5 @@
-import { Repository, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Conversation } from 'src/conversation/conversation.entity';
 
@@ -10,48 +10,51 @@ export class ConversationService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(currentUserId: number, friendId: number) {
-    const conversation = this.repo.create({
+  async create(
+    currentUserId: number,
+    friendId: number,
+    manager: EntityManager,
+  ) {
+    const conversationRepo = manager.getRepository(Conversation);
+
+    const conversation = conversationRepo.create({
       participants: [
         { user: { id: currentUserId } },
         { user: { id: friendId } },
       ],
     });
 
-    await this.repo.save(conversation);
-    return conversation;
+    await conversationRepo.save(conversation);
+    return conversation.id;
   }
 
-  async findOne(currentUserId: number, friendId: number) {
-    // await this.friendRequestService.findFriend(currentUserId, friendId);
-
-    const existingConversation = await this.repo
-      .createQueryBuilder('conversation')
-      .leftJoinAndSelect('conversation.participants', 'participant')
-      .leftJoinAndSelect('participant.user', 'user')
-      .where('user.id IN (:...ids)', { ids: [currentUserId, friendId] })
-      .andWhere('participant.active = true')
-      .groupBy('conversation.id')
-      .having('COUNT(user.id) = 2')
-      .getOne();
-
-    if (existingConversation) {
-      return {
-        data: existingConversation,
-        message: 'Fetched conversation successfully',
-      };
-    }
-
-    const conversation = await this.create(currentUserId, friendId);
-    const savedConversation = await this.repo.findOne({
-      where: { id: conversation.id },
-      relations: ['participants', 'participants.user'],
+  async getUserInformation(currentUserId: number, conversationId: string) {
+    const existingConversation = await this.repo.findOne({
+      where: { id: conversationId },
+      relations: { participants: { user: true } },
     });
 
-    return {
-      data: savedConversation,
-      message: 'Conversation created successfully',
-    };
+    if (!existingConversation) {
+      throw new NotFoundException('Conversation not exists');
+    }
+
+    const otherParticipant = existingConversation.participants.find(
+      (participant) => participant.user.id !== currentUserId,
+    )?.user;
+
+    return { data: otherParticipant, message: 'Fetched user information' };
+  }
+
+  async findOne(conversationId: string) {
+    const existingConversation = await this.repo.findOne({
+      where: { id: conversationId },
+    });
+
+    if (!existingConversation) {
+      throw new NotFoundException('Conversation not exists');
+    }
+
+    return { data: existingConversation, message: 'Fetched user information' };
   }
 
   async findById(conversationId: string, currentUserId: number) {
@@ -76,12 +79,9 @@ export class ConversationService {
   }
 
   async hardRemove(userId: number, conversationId: string) {
-    return await this.dataSource.transaction(async (manager) => {
-      const conversation = await this.findById(conversationId, userId);
-
-      await manager.remove(Conversation, conversation);
-      return { message: 'Convesation Deleted for all participants' };
-    });
+    const conversation = await this.findById(conversationId, userId);
+    await this.repo.remove(conversation);
+    return { message: 'Convesation Deleted for all participants' };
   }
 
   async findAll(userId: number) {

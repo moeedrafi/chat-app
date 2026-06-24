@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -38,5 +39,10 @@ export class MessageController {
     @Param('conversationid', ParseUUIDPipe) conversationId: string,
   ) {
     return this.messageService.seen(user.sub, conversationId);
+  }
+
+  @Get(':conversationid')
+  getMessages(@Param('conversationid', ParseUUIDPipe) conversationId: string) {
+    return this.messageService.findAll(conversationId);
   }
 }

@@ -1,69 +1,29 @@
 "use client";
+import { api } from "@/lib/api";
 import { socket } from "@/lib/socket";
 import { formatSeenAt } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import type { Message } from "@/types/message";
+import { useQuery } from "@tanstack/react-query";
+import { MessageCircleMore } from "lucide-react";
 
-const messages = [
-  {
-    id: 1,
-    sender: "john_doe",
-    message:
-      "What is this? no way is this it? sending a long message like this is crazy?",
-    seen_at: "2026-02-21T10:15:00Z",
-  },
-  {
-    id: 2,
-    sender: "jane_smith",
-    message: "Hey John, can you check this out?",
-    seen_at: "2026-04-21T10:17:30Z",
-  },
-  {
-    id: 3,
-    sender: "jane_smith",
-    message: "Sure, give me a minute.",
-    seen_at: "2026-05-21T10:18:05Z",
-  },
-  {
-    id: 4,
-    sender: "jane_smith",
-    message: "Sure, give me a minute.",
-    seen_at: "2026-05-21T10:18:05Z",
-  },
-  {
-    id: 5,
-    sender: "john_doe",
-    message: "Meeting starts in 10 minutes.",
-    seen_at: "2026-04-21T10:20:45Z",
-  },
-  {
-    id: 6,
-    sender: "john_doe",
-    message: "Got it, joining now.",
-    seen_at: "2026-04-21T10:22:10Z",
-  },
-  {
-    id: 7,
-    sender: "john_doe",
-    message: "Got it now.",
-    seen_at: "2026-04-21T10:22:10Z",
-  },
-  {
-    id: 8,
-    sender: "john_doe",
-    message: "Got it now.",
-    seen_at: "2026-04-21T10:22:10Z",
-  },
-];
-
-export const Messages = () => {
+export const Messages = ({ conversationId }: { conversationId: string }) => {
   const [message, setMessage] = useState<{ message: string; id: string }[]>([]);
+
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: async () => {
+      const req = await api.get<Message[]>(`/message/${conversationId}`);
+      return req.data;
+    },
+  });
 
   useEffect(() => {
     socket.on("connect", () => {
       console.log(socket.id);
     });
 
-    socket.emit("joinRoom", { roomId: "2" });
+    socket.emit("joinRoom", { roomId: conversationId });
 
     socket.on("receiveMessage", (newMessages) => {
       console.log(newMessages);
@@ -71,11 +31,24 @@ export const Messages = () => {
     });
 
     return () => {
-      socket.emit("leaveRoom", { roomId: "2" }); // leave on unmount
+      socket.emit("leaveRoom", { roomId: conversationId }); // leave on unmount
       socket.off("connect");
       socket.off("receiveMessage");
     };
   }, []);
+
+  if (isLoading) {
+    return <p>LOADING...</p>;
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+        <MessageCircleMore />
+        <p>No messages sent yet</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex-1 flex flex-col gap-3 px-3 max-w-7xl mx-auto overflow-auto hide-scrollbar">
@@ -84,7 +57,7 @@ export const Messages = () => {
       ))}
 
       {messages.map((message) => {
-        const isOwn = message.sender === "john_doe";
+        const isOwn = message.sender.username === "john_doe";
 
         return (
           <div

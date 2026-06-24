@@ -16,6 +16,9 @@ export class Friend {
   @Column()
   friendshipKey: string;
 
+  @Column('uuid')
+  conversationId: string;
+
   @Column()
   userAId: number;
 

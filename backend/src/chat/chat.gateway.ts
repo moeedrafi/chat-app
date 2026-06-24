@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageService } from 'src/message/message.service';
 
-@WebSocketGateway(8080, { cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
