@@ -15,6 +15,9 @@ export default async function ConversationIdPage({
     `/conversation/${conversationId}`,
   );
 
+  const user = await serverFetch("/auth/verify");
+  console.log(user);
+
   if (!conversation) {
     notFound();
   }
@@ -23,7 +26,7 @@ export default async function ConversationIdPage({
     <div className="h-full flex flex-col font-lato text-text space-y-3">
       <ConversationHeader conversationId={conversationId} />
       <Messages conversationId={conversationId} />
-      <ConversationInput conversationId={conversationId} />
+      <ConversationInput userId={user.sub} conversationId={conversationId} />
     </div>
   );
 }

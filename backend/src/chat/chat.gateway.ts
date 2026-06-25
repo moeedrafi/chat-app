@@ -18,11 +18,6 @@ export class ChatGateway
   @WebSocketServer() server: Server;
   constructor(private messageService: MessageService) {}
 
-  messages = [
-    { id: 1, message: 'NEW ONE?' },
-    { id: 2, mesage: 'NO WAY' },
-  ];
-
   afterInit(server: any) {
     console.log('CHATGATEWAY INIT: ', server);
   }
@@ -37,32 +32,27 @@ export class ChatGateway
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
-    @MessageBody() data: { roomId: string },
     @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: string },
   ) {
-    client.join(data.roomId);
-    console.log(`Client ${client.id} joined room ${data.roomId}`);
-
-    const createdMessage = [
-      { id: '1', message: 'NEW ONE?' },
-      { id: '2', mesage: 'NO WAY' },
-    ];
-
-    return this.messages;
+    client.join(data.conversationId);
+    console.log(`Client ${client.id} joined room ${data.conversationId}`);
+    client.to(data.conversationId).emit('status', 'Active');
   }
 
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(
-    @MessageBody() data: { roomId: string },
+    @MessageBody() data: { conversationId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    client.leave(data.roomId);
-    console.log(`Client ${client.id} left room ${data.roomId}`);
-    return { ok: true };
+    client.leave(data.conversationId);
+    console.log(`Client ${client.id} left room ${data.conversationId}`);
+    client.to(data.conversationId).emit('status', 'Inactive');
   }
 
   @SubscribeMessage('sendMessage')
   async sendMessage(
+    @ConnectedSocket() client: Socket,
     @MessageBody()
     data: {
       senderId: number;
@@ -70,20 +60,13 @@ export class ChatGateway
       message: string;
     },
   ) {
-    console.log(
-      'send message: ' + data.message + ' at: ' + data.conversationId,
+    const createdMessage = await this.messageService.create(
+      data.senderId,
+      data.conversationId,
+      data.message,
     );
 
-    // message service createCreate
-    // const createdMessage = await this.messageService.create(
-    //   data.senderId,
-    //   data.conversationId,
-    //   data.message,
-    // );
-
-    const createdMessage = { id: Math.random(), message: data.message };
-    this.messages.push(createdMessage);
-
-    this.server.to(data.conversationId).emit('receiveMessage', createdMessage);
+    client.to(data.conversationId).emit('receiveMessage', createdMessage);
+    return createdMessage;
   }
 }

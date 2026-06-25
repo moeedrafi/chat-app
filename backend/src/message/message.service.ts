@@ -4,14 +4,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { MessageStatus } from 'src/enum';
 import { Message } from 'src/message/message.entity';
 import { ConversationService } from 'src/conversation/conversation.service';
-import { FriendRequestService } from 'src/friend-request/friend-request.service';
 
 @Injectable()
 export class MessageService {
   constructor(
     @InjectRepository(Message) private repo: Repository<Message>,
     private readonly conversationService: ConversationService,
-    private readonly friendRequestService: FriendRequestService,
   ) {}
 
   async create(senderId: number, conversationId: string, message: string) {
@@ -20,8 +18,9 @@ export class MessageService {
       senderId,
     );
 
-    const users = conversation.participants.map((u) => u.user.id);
-    // await this.friendRequestService.findFriend(users[0], users[1]);
+    if (!conversation) {
+      throw new NotFoundException('conversation doesnt exists');
+    }
 
     const createdMessage = this.repo.create({
       message,
@@ -29,10 +28,7 @@ export class MessageService {
       sender: { id: senderId },
     });
 
-    return {
-      data: this.repo.save(createdMessage),
-      message: 'send message successfully',
-    };
+    return await this.repo.save(createdMessage);
   }
 
   async remove(senderId: number, conversationId: string, messageId: string) {
@@ -98,6 +94,7 @@ export class MessageService {
   async findAll(conversationId: string) {
     const messages = await this.repo.find({
       where: { conversation: { id: conversationId } },
+      relations: { sender: true },
     });
 
     return { data: messages, message: 'Fetched messages successfully' };

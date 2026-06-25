@@ -1,15 +1,15 @@
 "use client";
+import { useEffect } from "react";
+import { Loader, MessageCircleMore } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { api } from "@/lib/api";
 import { socket } from "@/lib/socket";
 import { formatSeenAt } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import type { Message } from "@/types/message";
-import { useQuery } from "@tanstack/react-query";
-import { MessageCircleMore } from "lucide-react";
 
 export const Messages = ({ conversationId }: { conversationId: string }) => {
-  const [message, setMessage] = useState<{ message: string; id: string }[]>([]);
-
+  const queryClient = useQueryClient();
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["messages", conversationId],
     queryFn: async () => {
@@ -19,26 +19,30 @@ export const Messages = ({ conversationId }: { conversationId: string }) => {
   });
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log(socket.id);
-    });
+    const handler = (newMessage: Message) => {
+      queryClient.setQueryData<Message[]>(
+        ["messages", conversationId],
+        (old = []) => {
+          if (old.some((m) => m.id === newMessage.id)) return old;
+          return [...old, newMessage];
+        },
+      );
+    };
 
-    socket.emit("joinRoom", { roomId: conversationId });
-
-    socket.on("receiveMessage", (newMessages) => {
-      console.log(newMessages);
-      setMessage((prev) => [...prev, newMessages]);
-    });
+    socket.on("receiveMessage", handler);
 
     return () => {
-      socket.emit("leaveRoom", { roomId: conversationId }); // leave on unmount
-      socket.off("connect");
-      socket.off("receiveMessage");
+      socket.off("receiveMessage", handler);
     };
-  }, []);
+  }, [conversationId, queryClient]);
 
   if (isLoading) {
-    return <p>LOADING...</p>;
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+        <Loader className="animate-spin" />
+        <p>Skeleton Loader</p>
+      </div>
+    );
   }
 
   if (messages.length === 0) {
@@ -52,12 +56,8 @@ export const Messages = ({ conversationId }: { conversationId: string }) => {
 
   return (
     <div className="w-full flex-1 flex flex-col gap-3 px-3 max-w-7xl mx-auto overflow-auto hide-scrollbar">
-      {message.map((m) => (
-        <p key={m.id}>{m.message}</p>
-      ))}
-
       {messages.map((message) => {
-        const isOwn = message.sender.username === "john_doe";
+        const isOwn = message.sender.username === "moeedrafi";
 
         return (
           <div
@@ -68,9 +68,12 @@ export const Messages = ({ conversationId }: { conversationId: string }) => {
               className={`flex flex-col max-w-xs px-4 py-3 rounded-lg gap-1 ${isOwn ? "bg-secondary items-end" : "bg-light items-start"}`}
             >
               <p className="text-text">{message.message}</p>
-              <span className="text-muted-foreground text-xs">
-                {formatSeenAt(message.seen_at)}
-              </span>
+
+              {message.seen_at ? (
+                <span className="text-muted-foreground text-xs">
+                  {formatSeenAt(message.seen_at)}
+                </span>
+              ) : null}
             </div>
           </div>
         );

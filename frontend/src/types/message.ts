@@ -9,7 +9,7 @@ export interface Message {
   id: string;
   sender: User;
   message: string;
-  seen_at: string;
+  seen_at: string | null;
   createdAt: string;
   status: MessageStatus;
 }

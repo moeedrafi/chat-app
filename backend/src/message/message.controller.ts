@@ -8,8 +8,10 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { MessagesDTO } from 'src/message/dtos/messages.dto';
 import { MessageService } from 'src/message/message.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 
 @Controller('message')
 export class MessageController {
@@ -41,6 +43,7 @@ export class MessageController {
     return this.messageService.seen(user.sub, conversationId);
   }
 
+  @Serialize(MessagesDTO)
   @Get(':conversationid')
   getMessages(@Param('conversationid', ParseUUIDPipe) conversationId: string) {
     return this.messageService.findAll(conversationId);

@@ -1,0 +1,48 @@
+import { socket } from "@/lib/socket";
+import { MessageStatus, type Message } from "@/types/message";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+export const useSendMessage = (userId: number, conversationId: string) => {
+  const queryClient = useQueryClient();
+  const queryKey = ["messages", conversationId];
+
+  return useMutation({
+    mutationFn: async (message: string) => {
+      return await socket.emitWithAck("sendMessage", {
+        senderId: userId,
+        conversationId,
+        message,
+      });
+    },
+    onMutate: async (message: string) => {
+      const tempId = crypto.randomUUID();
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousMessages = queryClient.getQueryData<Message[]>(queryKey);
+
+      const newMessage: Message = {
+        id: crypto.randomUUID(),
+        message,
+        seen_at: null,
+        createdAt: new Date().toISOString(),
+        status: MessageStatus.SENT,
+        sender: { email: "email", username: "username", id: userId },
+      };
+
+      queryClient.setQueryData<Message[]>(queryKey, (old = []) => [
+        ...old,
+        newMessage,
+      ]);
+
+      return { previousMessages, tempId };
+    },
+    onSuccess: (serverMessage, _vars, context) => {
+      queryClient.setQueryData<Message[]>(queryKey, (oldMessages = []) =>
+        oldMessages.map((m) => (m.id === context.tempId ? serverMessage : m)),
+      );
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(queryKey, context?.previousMessages);
+    },
+  });
+};
