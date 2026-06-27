@@ -5,15 +5,13 @@ import { Button } from "@/components/ui/Button";
 import { useSendMessage } from "@/hooks/useSendMessage";
 
 export const ConversationInput = ({
-  userId,
   conversationId,
 }: {
-  userId: number;
   conversationId: string;
 }) => {
   const [message, setMessage] = useState<string>("");
 
-  const sendMessageMutation = useSendMessage(userId, conversationId);
+  const sendMessageMutation = useSendMessage(conversationId);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;

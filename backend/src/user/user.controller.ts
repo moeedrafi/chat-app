@@ -13,4 +13,9 @@ export class UserController {
   ) {
     return this.userService.searchUsers(user.sub, username);
   }
+
+  @Get()
+  getUser(@CurrentUser() user: { sub: number }) {
+    return this.userService.getLoggedInUserInformation(user.sub);
+  }
 }

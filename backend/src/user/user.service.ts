@@ -69,6 +69,14 @@ export class UserService {
     return { data: users, message: 'Fetched users' };
   }
 
+  async getLoggedInUserInformation(userId: number) {
+    const user = await this.findById(userId, {
+      select: ['id', 'username', 'email'],
+    });
+
+    return { data: user, message: 'fetched logged in user' };
+  }
+
   async findById(
     id: number,
     options?: { relations?: string[]; select?: (keyof User)[] },

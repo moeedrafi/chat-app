@@ -1,24 +1,10 @@
 "use client";
+import { getQueryClient } from "@/lib/get-query-client";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: (failureCount, error: any) => {
-          if (error?.statusCode === 401) return false;
-          return failureCount < 2;
-        },
-      },
-      mutations: {
-        retry: (failureCount, error: any) => {
-          if (error?.statusCode === 401) return false;
-          return failureCount < 1;
-        },
-      },
-    },
-  });
+  const queryClient = getQueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>

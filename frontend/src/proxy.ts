@@ -45,11 +45,22 @@ export async function proxy(request: NextRequest) {
     }
 
     if (refreshResponse.ok) {
+      const setCookieHeaders = refreshResponse.headers.getSetCookie();
+
+      // Build a new request with updated cookies so downstream Server Components see them
+      const requestHeaders = new Headers(request.headers);
+      const existingCookie = requestHeaders.get("cookie") ?? "";
+      const newCookiePairs = setCookieHeaders
+        .map((c) => c.split(";")[0])
+        .join("; ");
+
+      requestHeaders.set("cookie", `${existingCookie}; ${newCookiePairs}`);
+
       const res = isAuthPage
         ? NextResponse.redirect(new URL("/", request.url))
-        : NextResponse.next();
+        : NextResponse.next({ request: { headers: requestHeaders } });
 
-      refreshResponse.headers.getSetCookie().forEach((cookie) => {
+      setCookieHeaders.forEach((cookie) => {
         res.headers.append("set-cookie", cookie);
       });
 

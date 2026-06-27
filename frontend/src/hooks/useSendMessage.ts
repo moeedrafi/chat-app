@@ -1,15 +1,17 @@
+import { useUser } from "./useUser";
 import { socket } from "@/lib/socket";
 import { MessageStatus, type Message } from "@/types/message";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const useSendMessage = (userId: number, conversationId: string) => {
+export const useSendMessage = (conversationId: string) => {
+  const { user } = useUser();
   const queryClient = useQueryClient();
   const queryKey = ["messages", conversationId];
 
   return useMutation({
     mutationFn: async (message: string) => {
       return await socket.emitWithAck("sendMessage", {
-        senderId: userId,
+        senderId: user!.id,
         conversationId,
         message,
       });
@@ -21,12 +23,12 @@ export const useSendMessage = (userId: number, conversationId: string) => {
       const previousMessages = queryClient.getQueryData<Message[]>(queryKey);
 
       const newMessage: Message = {
-        id: crypto.randomUUID(),
+        id: tempId,
         message,
         seen_at: null,
         createdAt: new Date().toISOString(),
         status: MessageStatus.SENT,
-        sender: { email: "email", username: "username", id: userId },
+        sender: { email: user!.email, username: user!.username, id: user!.id },
       };
 
       queryClient.setQueryData<Message[]>(queryKey, (old = []) => [
