@@ -11,7 +11,6 @@ export const useSendMessage = (conversationId: string) => {
   return useMutation({
     mutationFn: async (message: string) => {
       return await socket.emitWithAck("sendMessage", {
-        senderId: user!.id,
         conversationId,
         message,
       });

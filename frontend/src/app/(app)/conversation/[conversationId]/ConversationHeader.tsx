@@ -12,7 +12,7 @@ export const ConversationHeader = ({
 }: {
   conversationId: string;
 }) => {
-  const [status, setStatus] = useState<"Active" | "Inactive">("Inactive");
+  const [isOnline, setIsOnline] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["user-information", conversationId],
@@ -23,15 +23,28 @@ export const ConversationHeader = ({
   });
 
   useEffect(() => {
-    socket.emit("joinRoom", { conversationId });
+    if (!data?.id) return;
 
-    socket.on("status", (status: "Active" | "Inactive") => setStatus(status));
+    socket.emitWithAck("getOnlineStatus", data.id).then((isOnline: boolean) => {
+      setIsOnline(isOnline);
+    });
+
+    const handleOnline = ({ userId }: { userId: number }) => {
+      if (userId === data.id) setIsOnline(true);
+    };
+
+    const handleOffline = ({ userId }: { userId: number }) => {
+      if (userId === data.id) setIsOnline(false);
+    };
+
+    socket.on("userOnline", handleOnline);
+    socket.on("userOffline", handleOffline);
 
     return () => {
-      socket.emit("leaveRoom", { conversationId });
-      socket.off("status");
+      socket.off("userOnline", handleOnline);
+      socket.off("userOffline", handleOffline);
     };
-  }, [conversationId]);
+  }, [data?.id]);
 
   return (
     <div className="bg-bg p-4 flex items-center justify-between gap-2 border-b border-color">
@@ -40,9 +53,9 @@ export const ConversationHeader = ({
         <div>
           <h6>{isLoading ? "Loading..." : data?.username}</h6>
           <span
-            className={`text-xs ${status === "Active" ? "text-green-500" : "text-red-500"}`}
+            className={`text-xs ${isOnline ? "text-green-500" : "text-red-500"}`}
           >
-            {status}
+            {isOnline ? "Online" : "Offline"}
           </span>
         </div>
       </div>
