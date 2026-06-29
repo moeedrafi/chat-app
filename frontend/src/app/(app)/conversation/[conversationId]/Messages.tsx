@@ -3,11 +3,12 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { Loader, MessageCircleMore } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { api } from "@/lib/api";
 import { socket } from "@/lib/socket";
 import { useUser } from "@/hooks/useUser";
 import { formatSeenAt } from "@/lib/utils";
+import { queryKeys } from "@/lib/query-key";
 import type { Message } from "@/types/message";
+import { getMessages } from "@/services/message";
 
 export const Messages = ({ conversationId }: { conversationId: string }) => {
   const { user } = useUser();
@@ -15,11 +16,8 @@ export const Messages = ({ conversationId }: { conversationId: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ["messages", conversationId],
-    queryFn: async () => {
-      const req = await api.get<Message[]>(`/message/${conversationId}`);
-      return req.data;
-    },
+    queryKey: queryKeys.messages(conversationId),
+    queryFn: () => getMessages(conversationId),
   });
 
   useEffect(() => {

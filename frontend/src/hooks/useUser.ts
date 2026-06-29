@@ -1,5 +1,6 @@
-import { api } from "@/lib/api";
-import { User } from "@/types/user";
+import { queryKeys } from "@/lib/query-key";
+import { getMe } from "@/services/user";
+import type { User } from "@/types/user";
 import { useQuery } from "@tanstack/react-query";
 
 export const useUser = () => {
@@ -8,11 +9,8 @@ export const useUser = () => {
     isPending,
     isError,
   } = useQuery<User>({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const res = await api.get<User>("/user");
-      return res.data;
-    },
+    queryKey: queryKeys.me(),
+    queryFn: getMe,
     staleTime: Infinity,
     retry: false,
   });

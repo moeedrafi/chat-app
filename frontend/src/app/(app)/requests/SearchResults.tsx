@@ -40,6 +40,7 @@ export const SearchResults = ({
   const sendRequestMutation = useSendFriendRequest(searched);
 
   if (isLoading) {
+    // TODO: LOADING
     return <div className="py-3 text-sm text-muted">Searching...</div>;
   }
 

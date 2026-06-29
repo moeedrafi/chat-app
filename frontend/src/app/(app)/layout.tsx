@@ -1,12 +1,13 @@
+import { AppLayout } from "./AppLayout";
+import { getMeSSR } from "@/services/user";
+import { queryKeys } from "@/lib/query-key";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
-import { AppLayout } from "./AppLayout";
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { serverFetch } from "@/lib/serverFetch";
 
 export default async function AppShellLayout({
   children,
@@ -16,11 +17,8 @@ export default async function AppShellLayout({
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data: user } = await serverFetch("/user");
-      return user;
-    },
+    queryKey: queryKeys.me(),
+    queryFn: getMeSSR,
   });
 
   return (

@@ -2,10 +2,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-key";
 import { SearchResults } from "./SearchResults";
 import { useDebounce } from "@/hooks/useDebounce";
-import type { SearchedUsers } from "@/types/requests";
+import { getDebouncedSearch } from "@/services/requests";
 
 export const RequestSearch = () => {
   const [search, setSearch] = useState<string>("");
@@ -17,13 +17,8 @@ export const RequestSearch = () => {
   const debouncedSearch = useDebounce(search);
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["search-users", debouncedSearch],
-    queryFn: async () => {
-      const req = await api.get<SearchedUsers[]>(
-        `/user/search/${debouncedSearch.trim()}`,
-      );
-      return req.data;
-    },
+    queryKey: queryKeys.searchUsers(debouncedSearch),
+    queryFn: () => getDebouncedSearch(debouncedSearch),
     enabled: debouncedSearch.trim().length > 0,
   });
 

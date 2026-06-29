@@ -1,3 +1,4 @@
+import { queryKeys } from "@/lib/query-key";
 import { useUser } from "./useUser";
 import { socket } from "@/lib/socket";
 import { MessageStatus, type Message } from "@/types/message";
@@ -6,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 export const useSendMessage = (conversationId: string) => {
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const queryKey = ["messages", conversationId];
+  const queryKey = queryKeys.messages(conversationId);
 
   return useMutation({
     mutationFn: async (message: string) => {

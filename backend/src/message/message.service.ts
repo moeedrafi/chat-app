@@ -31,29 +31,20 @@ export class MessageService {
     return await this.repo.save(createdMessage);
   }
 
-  async remove(senderId: number, conversationId: string, messageId: string) {
-    const conversation = await this.conversationService.findById(
-      conversationId,
-      senderId,
-    );
-
-    const users = conversation.participants.map((u) => u.user.id);
-    // await this.friendRequestService.findFriend(users[0], users[1]);
-
+  async remove(senderId: number, messageId: string) {
     const message = await this.repo.findOne({
-      where: {
-        id: messageId,
-        conversation: { id: conversationId },
-        sender: { id: senderId },
-      },
+      where: { id: messageId, sender: { id: senderId } },
     });
+
     if (!message) {
       throw new NotFoundException('message not found');
     }
 
+    const deletedMessage = await this.repo.remove(message);
+
     return {
-      data: this.repo.remove(message),
-      message: 'send message successfully',
+      data: deletedMessage,
+      message: 'Message deleted successfully',
     };
   }
 
@@ -98,5 +89,21 @@ export class MessageService {
     });
 
     return { data: messages, message: 'Fetched messages successfully' };
+  }
+
+  async update(senderId: number, messageId: string, newMessage: string) {
+    const message = await this.repo.findOne({
+      where: { id: messageId, sender: { id: senderId } },
+    });
+
+    if (!message) throw new NotFoundException('message not found');
+
+    message.message = newMessage;
+    await this.repo.save(message);
+
+    return {
+      data: message,
+      message: 'Message Updated Successfully!',
+    };
   }
 }

@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { MessagesDTO } from 'src/message/dtos/messages.dto';
 import { MessageService } from 'src/message/message.service';
+import { UpdateMessageDTO } from 'src/message/dtos/update-message.dto';
+import { CreateMessageDTO } from 'src/message/dtos/create-message.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 
@@ -21,26 +23,34 @@ export class MessageController {
   sendMessage(
     @CurrentUser() user: { sub: number },
     @Param('conversationid', ParseUUIDPipe) conversationId: string,
-    @Body() body: { message: string },
+    @Body() body: CreateMessageDTO,
   ) {
     return this.messageService.create(user.sub, conversationId, body.message);
   }
 
-  @Delete(':conversationid/:messageid')
+  @Delete(':messageid')
   removeMessage(
     @CurrentUser() user: { sub: number },
-    @Param('conversationid', ParseUUIDPipe) conversationId: string,
     @Param('messageid', ParseUUIDPipe) messageId: string,
   ) {
-    return this.messageService.remove(user.sub, conversationId, messageId);
+    return this.messageService.remove(user.sub, messageId);
   }
 
-  @Patch(':conversationid')
+  @Patch(':conversationid/seen')
   seenMessage(
     @CurrentUser() user: { sub: number },
     @Param('conversationid', ParseUUIDPipe) conversationId: string,
   ) {
     return this.messageService.seen(user.sub, conversationId);
+  }
+
+  @Patch(':messageid')
+  updateMessage(
+    @CurrentUser() user: { sub: number },
+    @Param('messageid', ParseUUIDPipe) messageId: string,
+    @Body() body: UpdateMessageDTO,
+  ) {
+    return this.messageService.update(user.sub, messageId, body.message);
   }
 
   @Serialize(MessagesDTO)

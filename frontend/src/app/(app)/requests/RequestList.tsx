@@ -1,16 +1,13 @@
 "use client";
-import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-key";
 import { RequestCard } from "./RequestCard";
 import { useQuery } from "@tanstack/react-query";
-import type { PendingRequest } from "@/types/friends";
+import { getPendingRequests } from "@/services/requests";
 
 export const RequestList = () => {
   const { data: requests = [], isLoading } = useQuery({
-    queryKey: ["pending-request"],
-    queryFn: async () => {
-      const req = await api.get<PendingRequest[]>(`/friend-request`);
-      return req.data;
-    },
+    queryKey: queryKeys.pendingRequest(),
+    queryFn: getPendingRequests,
     refetchOnWindowFocus: false,
   });
 

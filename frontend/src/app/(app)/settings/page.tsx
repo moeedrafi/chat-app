@@ -1,4 +1,5 @@
 import { SettingsForm } from "./SettingsForm";
+import { UpdateAvatar } from "./UpdateAvatar";
 
 export default function SettingsPage() {
   return (
@@ -12,6 +13,7 @@ export default function SettingsPage() {
         </div>
 
         <SettingsForm />
+        <UpdateAvatar />
       </div>
     </div>
   );

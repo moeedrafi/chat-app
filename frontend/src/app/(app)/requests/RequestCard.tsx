@@ -1,63 +1,62 @@
-import { api } from "@/lib/api";
+"use client";
 import toast from "react-hot-toast";
+import { queryKeys } from "@/lib/query-key";
 import { Button } from "@/components/ui/Button";
 import type { PendingRequest } from "@/types/friends";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { acceptFriendRequest, rejectFriendRequest } from "@/services/requests";
 
 export const RequestCard = ({ request }: { request: PendingRequest }) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationKey: ["request"],
     mutationFn: async ({
       id,
-      type,
+      action,
     }: {
       id: number;
-      type: "accept" | "delete";
+      action: "accept" | "delete";
     }) => {
-      if (type === "accept") {
-        return api.post(`friend-request/${id}`, {});
-      } else {
-        return api.delete(`friend-request/${id}`);
-      }
+      return action === "accept"
+        ? acceptFriendRequest(id)
+        : rejectFriendRequest(id);
     },
-    onMutate: async (variables: { id: number; type: "accept" | "delete" }) => {
-      // 1. Cancel any outgoing refetch
+    onMutate: async (variables: {
+      id: number;
+      action: "accept" | "delete";
+    }) => {
       await queryClient.cancelQueries({
-        queryKey: ["pending-request"],
+        queryKey: queryKeys.pendingRequest(),
       });
 
-      // 2. Snapshot previous state
-      const previousUsers = queryClient.getQueryData<PendingRequest[]>([
-        "pending-request",
-      ]);
+      const previousUsers = queryClient.getQueryData<PendingRequest[]>(
+        queryKeys.pendingRequest(),
+      );
 
-      // 3. Optimistically update UI
       queryClient.setQueryData<PendingRequest[]>(
-        ["pending-request"],
+        queryKeys.pendingRequest(),
         (old = []) => old.filter((u) => u.sender.id !== variables.id),
       );
 
       return { previousUsers };
     },
-    // If the mutation fails,
-    // use the result returned from onMutate to roll back
     onError: (err, _, context) => {
-      queryClient.setQueryData(["pending-request"], context?.previousUsers);
+      queryClient.setQueryData(
+        queryKeys.pendingRequest(),
+        context?.previousUsers,
+      );
       toast.error("Something went wrong");
     },
-    // Always refetch after error or success:
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["friends"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends() });
 
       return queryClient.invalidateQueries({
-        queryKey: ["pending-request"],
+        queryKey: queryKeys.pendingRequest(),
       });
     },
     onSuccess: (_, variables) => {
       toast.success(
-        variables.type === "accept" ? "Request accepted" : "Request declined",
+        variables.action === "accept" ? "Request accepted" : "Request declined",
       );
     },
   });
@@ -79,7 +78,7 @@ export const RequestCard = ({ request }: { request: PendingRequest }) => {
         <Button
           disabled={mutation.isPending}
           onClick={() =>
-            mutation.mutate({ id: request.sender.id, type: "accept" })
+            mutation.mutate({ id: request.sender.id, action: "accept" })
           }
         >
           Accept
@@ -89,7 +88,7 @@ export const RequestCard = ({ request }: { request: PendingRequest }) => {
           variant="ghost"
           disabled={mutation.isPending}
           onClick={() =>
-            mutation.mutate({ id: request.sender.id, type: "delete" })
+            mutation.mutate({ id: request.sender.id, action: "delete" })
           }
         >
           Decline
